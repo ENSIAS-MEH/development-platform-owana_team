@@ -7,8 +7,7 @@ spring:
     config:
       server:
         native:
-          search-locations: classpath:/config-repo
-          # search-locations: file:${user.home}/founderssync/config-repo
+          search-locations: file:C:/Users/hp/Desktop/development-platform-owana_team/config-repo
 
 server:
   port: 8888
