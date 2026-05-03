@@ -6,6 +6,7 @@ import com.foundersync.auth_service.entity.User;
 import com.foundersync.auth_service.enums.AppRole;
 import com.foundersync.auth_service.exception.EmailAlreadyExistsException;
 import com.foundersync.auth_service.exception.InvalidTokenException;
+import com.foundersync.auth_service.messaging.AuthEventPublisher;
 import com.foundersync.auth_service.repository.RefreshTokenRepository;
 import com.foundersync.auth_service.repository.UserRepository;
 import com.foundersync.auth_service.security.JwtService;
@@ -38,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
     private final EmailService emailService;
+    private final AuthEventPublisher eventPublisher;
 
     @Value("${app.jwt.refresh-expiration:604800000}")
     private long refreshExpiration;
@@ -57,6 +59,7 @@ public class AuthServiceImpl implements AuthService {
                 .role(AppRole.USER)
                 .build();
         userRepository.save(user);
+        eventPublisher.publishUserRegistered(user.getId(), user.getEmail());
 
         return buildAuthResponse(user);
     }
