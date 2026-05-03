@@ -10,6 +10,7 @@
         <module name="api-gateway" />
         <module name="config-server" />
         <module name="auth-service" />
+        <module name="user-service" />
       </profile>
       <profile name="Annotation profile for user-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -20,7 +21,6 @@
         </processorPath>
         <module name="startup-service" />
         <module name="post-service" />
-        <module name="user-service" />
         <module name="notification-service" />
       </profile>
     </annotationProcessing>
