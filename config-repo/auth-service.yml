@@ -11,14 +11,28 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
+  mail:
+    host: smtp.gmail.com
+    port: 465
+    username: lilivyminx@gmail.com
+    password: gjjw rjqn qola eobx
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 app:
   jwt:
     secret: "founderssync_jwt_secret_minimum_32_characters_ok"
     expiration: 86400000
     refresh-expiration: 604800000
+  frontend-url: http://localhost:4200
 
 springdoc:
   api-docs:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+

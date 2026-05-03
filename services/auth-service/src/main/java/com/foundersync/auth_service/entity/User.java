@@ -39,4 +39,9 @@ public class User {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @Column(unique = true)
+    private String resetPasswordToken;
+
+    private LocalDateTime resetPasswordTokenExpiresAt;
 }
