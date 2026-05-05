@@ -3,6 +3,10 @@ spring:
     name: user-service
   config:
     import: "optional:configserver:http://localhost:8888"
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
 
 server:
   port: 8082

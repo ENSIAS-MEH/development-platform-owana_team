@@ -5,11 +5,15 @@ import com.foundersync.user_service.dto.UserProfileResponse;
 import com.foundersync.user_service.entity.UserProfile;
 import com.foundersync.user_service.exception.ProfileNotFoundException;
 import com.foundersync.user_service.repository.UserProfileRepository;
+import com.foundersync.user_service.security.JwtUtil;
+import com.foundersync.user_service.service.StorageService;
 import com.foundersync.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +24,8 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserProfileRepository userProfileRepository;
+    private final StorageService storageService;
+    private final JwtUtil jwtUtil;
 
     @Override
     public UserProfileResponse getProfileByUserId(UUID userId) {
@@ -99,5 +105,50 @@ public class UserServiceImpl implements UserService {
                 .location(profile.getLocation())
                 .createdAt(profile.getCreatedAt())
                 .build();
+    }
+
+    @Override
+    public UserProfileResponse getMyProfile(String authHeader) {
+        UUID userId = jwtUtil.extractUserId(authHeader);
+        return getProfileByUserId(userId);
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse updateMyProfile(String authHeader, UpdateProfileRequest request) {
+        UUID userId = jwtUtil.extractUserId(authHeader);
+        return updateProfile(userId, request);
+    }
+
+    @Override
+    public List<UserProfileResponse> getAllUsers(int page, int size) {
+        return userProfileRepository
+                .findAll(PageRequest.of(page, size))
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse uploadProfilePicture(String authHeader, MultipartFile file) {
+        UUID userId = jwtUtil.extractUserId(authHeader);
+
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ProfileNotFoundException(
+                        "Profile not found for userId: " + userId));
+
+        // Delete old picture from S3 if exists
+        if (profile.getProfilePictureURL() != null) {
+            storageService.deleteFile(profile.getProfilePictureURL());
+        }
+
+        // Upload new picture
+        String imageUrl = storageService.uploadProfilePicture(file, userId.toString());
+        profile.setProfilePictureURL(imageUrl);
+        userProfileRepository.save(profile);
+
+        log.info("Profile picture updated for userId: {}", userId);
+        return toResponse(profile);
     }
 }

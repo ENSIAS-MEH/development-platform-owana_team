@@ -32,9 +32,6 @@ public class User {
     private AppRole role;
 
     @Builder.Default
-    private boolean isActive = true;
-
-    @Builder.Default
     private boolean isBanned = false;
 
     @CreationTimestamp
