@@ -34,6 +34,9 @@ app:
     expiration: 86400000
     refresh-expiration: 604800000
   frontend-url: http://localhost:4200
+  admin:
+    email: admin@founderssync.com
+    password: "AdminPWD#@2026"
 
 springdoc:
   api-docs:

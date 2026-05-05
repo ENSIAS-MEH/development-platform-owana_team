@@ -8,9 +8,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -71,5 +73,30 @@ public class AuthController {
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Auth service is running");
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/users/{userId}/ban")
+    @Operation(summary = "Ban a user — admin only")
+    public ResponseEntity<Void> banUser(@PathVariable UUID userId) {
+        authService.banUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/users/{userId}/unban")
+    @Operation(summary = "Unban a user — admin only")
+    public ResponseEntity<Void> unbanUser(@PathVariable UUID userId) {
+        authService.unbanUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/change-password")
+    @Operation(summary = "Change password for authenticated user")
+    public ResponseEntity<Map<String, String>> changePassword(
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(authHeader, request);
+        return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
     }
 }

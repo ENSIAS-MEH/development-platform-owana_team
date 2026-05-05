@@ -6,16 +6,19 @@ import com.foundersync.auth_service.entity.User;
 import com.foundersync.auth_service.enums.AppRole;
 import com.foundersync.auth_service.exception.EmailAlreadyExistsException;
 import com.foundersync.auth_service.exception.InvalidTokenException;
+import com.foundersync.auth_service.exception.UserNotFoundException;
 import com.foundersync.auth_service.messaging.AuthEventPublisher;
 import com.foundersync.auth_service.repository.RefreshTokenRepository;
 import com.foundersync.auth_service.repository.UserRepository;
 import com.foundersync.auth_service.security.JwtService;
+import com.foundersync.auth_service.security.JwtUtil;
 import com.foundersync.auth_service.service.AuthService;
 import com.foundersync.auth_service.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -40,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserDetailsService userDetailsService;
     private final EmailService emailService;
     private final AuthEventPublisher eventPublisher;
+    private final JwtUtil jwtUtil;
 
     @Value("${app.jwt.refresh-expiration:604800000}")
     private long refreshExpiration;
@@ -166,6 +170,29 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
 
+    // ─── Change Password ──────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public void changePassword(String authHeader, ChangePasswordRequest request) {
+        // Extract userId from token
+        UUID userId = jwtUtil.extractUserId(authHeader);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User not found: " + userId));
+
+        // Verify current password is correct
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Current password is incorrect");
+        }
+
+        // Update to new password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        log.info("Password changed for userId: {}", userId);
+    }
+
     // ─── Helper privé ────────────────────────────────────────────────────────
 
     private AuthResponse buildAuthResponse(User user) {
@@ -192,5 +219,25 @@ public class AuthServiceImpl implements AuthService {
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void banUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+        user.setBanned(true);
+        userRepository.save(user);
+        log.info("User banned: {}", userId);
+    }
+
+    @Override
+    @Transactional
+    public void unbanUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
+        user.setBanned(false);
+        userRepository.save(user);
+        log.info("User unbanned: {}", userId);
     }
 }
