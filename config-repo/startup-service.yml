@@ -2,13 +2,31 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/startup_db
     username: postgres
-    password: postgres
+    password: Ayaaaa240503@
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
   rabbitmq:
     host: localhost
     port: 5672
     username: guest
     password: guest
+
+
+
+aws:
+  access-key: AKIAZOAEA6G3ZSW4IR3T
+  secret-key: 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
+  region: eu-west-3
+  bucket-name: founderssync-s3-aya
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
