@@ -116,6 +116,11 @@ public class JoinRequestService {
         JoinRequest joinRequest = joinRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Join request not found"));
 
+        // ← AJOUTER CETTE VÉRIFICATION
+        if (joinRequest.getStatus() != JoinRequestStatus.PENDING) {
+            throw new BadRequestException("Cannot ignore a request that has already been accepted");
+        }
+
         Startup startup = startupRepository.findById(joinRequest.getStartupId())
                 .orElseThrow(() -> new ResourceNotFoundException("Startup not found"));
 

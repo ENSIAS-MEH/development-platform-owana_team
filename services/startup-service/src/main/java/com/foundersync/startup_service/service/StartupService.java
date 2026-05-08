@@ -2,6 +2,7 @@ package com.foundersync.startup_service.service;
 
 import com.foundersync.startup_service.dto.request.StartupRequest;
 import com.foundersync.startup_service.dto.request.UpdateStartupRequest;
+import com.foundersync.startup_service.dto.response.PageResponse;
 import com.foundersync.startup_service.dto.response.StartupResponse;
 import com.foundersync.startup_service.exception.ResourceNotFoundException;
 import com.foundersync.startup_service.exception.UnauthorizedException;
@@ -11,6 +12,10 @@ import com.foundersync.startup_service.model.StartupRole;
 import com.foundersync.startup_service.repository.StartupMemberRepository;
 import com.foundersync.startup_service.repository.StartupRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -57,11 +62,25 @@ public class StartupService {
     // ══════════════════════════════
     // GET ALL STARTUPS
     // ══════════════════════════════
-    public List<StartupResponse> getAllStartups() {
-        return startupRepository.findByIsActiveTrue()
+    public PageResponse<StartupResponse> getAllStartups(int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<Startup> startupPage = startupRepository.findByIsActiveTrue(pageable);
+
+        List<StartupResponse> content = startupPage.getContent()
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+
+        return PageResponse.<StartupResponse>builder()
+                .content(content)
+                .currentPage(startupPage.getNumber())
+                .totalPages(startupPage.getTotalPages())
+                .totalElements(startupPage.getTotalElements())
+                .pageSize(startupPage.getSize())
+                .isLast(startupPage.isLast())
+                .build();
     }
 
     // ══════════════════════════════

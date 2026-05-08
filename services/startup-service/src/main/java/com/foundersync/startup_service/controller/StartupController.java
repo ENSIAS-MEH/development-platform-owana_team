@@ -2,6 +2,7 @@ package com.foundersync.startup_service.controller;
 
 import com.foundersync.startup_service.dto.request.StartupRequest;
 import com.foundersync.startup_service.dto.request.UpdateStartupRequest;
+import com.foundersync.startup_service.dto.response.PageResponse;
 import com.foundersync.startup_service.dto.response.StartupResponse;
 import com.foundersync.startup_service.service.StartupService;
 import jakarta.validation.Valid;
@@ -28,9 +29,12 @@ public class StartupController {
     }
 
     // GET ALL STARTUPS
+    // GET ALL STARTUPS (PAGINATED)
     @GetMapping
-    public ResponseEntity<List<StartupResponse>> getAllStartups() {
-        return ResponseEntity.ok(startupService.getAllStartups());
+    public ResponseEntity<PageResponse<StartupResponse>> getAllStartups(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(startupService.getAllStartups(page, size));
     }
 
     // GET STARTUP BY ID

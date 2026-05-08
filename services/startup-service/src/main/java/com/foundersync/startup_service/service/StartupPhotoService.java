@@ -1,5 +1,7 @@
 package com.foundersync.startup_service.service;
 
+import com.foundersync.startup_service.exception.ResourceNotFoundException;
+import com.foundersync.startup_service.exception.UnauthorizedException;
 import com.foundersync.startup_service.model.Startup;
 import com.foundersync.startup_service.model.StartupPhoto;
 import com.foundersync.startup_service.repository.StartupPhotoRepository;
@@ -41,7 +43,7 @@ public class StartupPhotoService {
                 .orElseThrow(() -> new RuntimeException("Startup not found"));
 
         if (!startup.getFounderId().equals(userId)) {
-            throw new RuntimeException("Only the founder can upload photos");
+            throw new UnauthorizedException("Only the founder can upload photos");
         }
 
         // Generate unique file key
@@ -86,16 +88,15 @@ public class StartupPhotoService {
     public void deletePhoto(UUID photoId, UUID userId) {
 
         StartupPhoto photo = startupPhotoRepository.findById(photoId)
-                .orElseThrow(() -> new RuntimeException("Photo not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Photo not found"));
 
         Startup startup = startupRepository.findById(photo.getStartupId())
-                .orElseThrow(() -> new RuntimeException("Startup not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Startup not found"));
 
         if (!startup.getFounderId().equals(userId)) {
-            throw new RuntimeException("Only the founder can delete photos");
+            throw new UnauthorizedException("Only the founder can delete photos");
         }
 
-        // Extract key from URL and delete from S3
         String fileKey = photo.getPhotoUrl().substring(photo.getPhotoUrl().indexOf("startups/"));
 
         s3Client.deleteObject(DeleteObjectRequest.builder()
@@ -103,7 +104,6 @@ public class StartupPhotoService {
                 .key(fileKey)
                 .build());
 
-        // Delete from DB
         startupPhotoRepository.delete(photo);
     }
 }
