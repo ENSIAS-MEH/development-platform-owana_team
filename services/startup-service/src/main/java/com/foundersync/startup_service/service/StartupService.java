@@ -3,11 +3,13 @@ package com.foundersync.startup_service.service;
 import com.foundersync.startup_service.dto.request.StartupRequest;
 import com.foundersync.startup_service.dto.request.UpdateStartupRequest;
 import com.foundersync.startup_service.dto.response.StartupResponse;
+import com.foundersync.startup_service.exception.ResourceNotFoundException;
+import com.foundersync.startup_service.exception.UnauthorizedException;
 import com.foundersync.startup_service.model.Startup;
 import com.foundersync.startup_service.model.StartupMember;
 import com.foundersync.startup_service.model.StartupRole;
-import com.foundersync.startup_service.repository.StartupRepository;
 import com.foundersync.startup_service.repository.StartupMemberRepository;
+import com.foundersync.startup_service.repository.StartupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +43,6 @@ public class StartupService {
 
         Startup saved = startupRepository.save(startup);
 
-        // Founder automatically becomes a member
         StartupMember founderMember = StartupMember.builder()
                 .startupId(saved.getId())
                 .userId(founderId)
@@ -68,7 +69,7 @@ public class StartupService {
     // ══════════════════════════════
     public StartupResponse getStartupById(UUID id) {
         Startup startup = startupRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Startup not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Startup not found"));
         return mapToResponse(startup);
     }
 
@@ -101,10 +102,10 @@ public class StartupService {
     public StartupResponse updateStartup(UUID startupId, UpdateStartupRequest request, UUID userId) {
 
         Startup startup = startupRepository.findById(startupId)
-                .orElseThrow(() -> new RuntimeException("Startup not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Startup not found"));
 
         if (!startup.getFounderId().equals(userId)) {
-            throw new RuntimeException("Only the founder can update this startup");
+            throw new UnauthorizedException("Only the founder can update this startup");
         }
 
         if (request.getName() != null) startup.setName(request.getName());
@@ -124,10 +125,10 @@ public class StartupService {
     public void deleteStartup(UUID startupId, UUID userId) {
 
         Startup startup = startupRepository.findById(startupId)
-                .orElseThrow(() -> new RuntimeException("Startup not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Startup not found"));
 
         if (!startup.getFounderId().equals(userId)) {
-            throw new RuntimeException("Only the founder can delete this startup");
+            throw new UnauthorizedException("Only the founder can delete this startup");
         }
 
         startup.setActive(false);

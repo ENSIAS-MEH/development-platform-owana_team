@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/startup_db
-    username: postgres
-    password: Ayaaaa240503@
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -20,10 +20,10 @@ spring:
 
 
 aws:
-  access-key: AKIAZOAEA6G3ZSW4IR3T
-  secret-key: 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
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
   region: eu-west-3
-  bucket-name: founderssync-s3-aya
+  bucket-name: ${AWS_BUCKET_NAME}
 
 springdoc:
   api-docs:

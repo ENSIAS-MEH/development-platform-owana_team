@@ -1,6 +1,9 @@
 package com.foundersync.startup_service.service;
 
 import com.foundersync.startup_service.dto.response.StartupMemberResponse;
+import com.foundersync.startup_service.exception.BadRequestException;
+import com.foundersync.startup_service.exception.ResourceNotFoundException;
+import com.foundersync.startup_service.exception.UnauthorizedException;
 import com.foundersync.startup_service.model.StartupMember;
 import com.foundersync.startup_service.repository.StartupMemberRepository;
 import com.foundersync.startup_service.repository.StartupRepository;
@@ -22,6 +25,9 @@ public class StartupMemberService {
     // GET ALL MEMBERS OF A STARTUP
     // ══════════════════════════════
     public List<StartupMemberResponse> getMembers(UUID startupId) {
+        startupRepository.findById(startupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Startup not found"));
+
         return startupMemberRepository.findByStartupId(startupId)
                 .stream()
                 .map(this::mapToResponse)
@@ -41,14 +47,18 @@ public class StartupMemberService {
     public void removeMember(UUID startupId, UUID userId, UUID founderId) {
 
         var startup = startupRepository.findById(startupId)
-                .orElseThrow(() -> new RuntimeException("Startup not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Startup not found"));
 
         if (!startup.getFounderId().equals(founderId)) {
-            throw new RuntimeException("Only the founder can remove members");
+            throw new UnauthorizedException("Only the founder can remove members");
         }
 
         if (userId.equals(founderId)) {
-            throw new RuntimeException("Founder cannot remove himself");
+            throw new BadRequestException("Founder cannot remove himself");
+        }
+
+        if (!startupMemberRepository.existsByStartupIdAndUserId(startupId, userId)) {
+            throw new ResourceNotFoundException("Member not found in this startup");
         }
 
         startupMemberRepository.deleteByStartupIdAndUserId(startupId, userId);
