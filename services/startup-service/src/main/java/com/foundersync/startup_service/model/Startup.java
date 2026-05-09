@@ -52,6 +52,19 @@ public class Startup {
     @Column(name = "is_reported", nullable = false)
     private boolean isReported = false;
 
+
+    @Column(name = "is_banned", nullable = false)
+    @Builder.Default
+    private boolean isBanned = false;
+
+    @Column(name = "ban_reason", columnDefinition = "TEXT")
+    private String banReason;
+
+    @Column(name = "banned_until")
+    private LocalDateTime bannedUntil;
+
+    @Column(name = "banned_at")
+    private LocalDateTime bannedAt;
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

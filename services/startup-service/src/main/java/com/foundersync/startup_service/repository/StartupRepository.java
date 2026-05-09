@@ -23,4 +23,7 @@ public interface StartupRepository extends JpaRepository<Startup, UUID> {
     List<Startup> findByNameContainingIgnoreCase(String name);
 
     boolean existsByNameAndFounderId(String name, UUID founderId);
+
+    Page<Startup> findByNumReportsGreaterThan(int numReports, Pageable pageable);
+
 }

@@ -168,6 +168,9 @@ public class StartupService {
                 .highlights(startup.getHighlights())
                 .founderId(startup.getFounderId())
                 .isActive(startup.isActive())
+                .isBanned(startup.isBanned())
+                .banReason(startup.getBanReason())
+                .bannedUntil(startup.getBannedUntil())
                 .numReports(startup.getNumReports())
                 .createdAt(startup.getCreatedAt())
                 .build();

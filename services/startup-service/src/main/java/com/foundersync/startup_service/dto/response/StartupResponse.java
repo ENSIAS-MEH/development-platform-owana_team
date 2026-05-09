@@ -23,6 +23,9 @@ public class StartupResponse {
     private Double rating;
     private UUID founderId;
     private boolean isActive;
+    private boolean isBanned;
+    private String banReason;
+    private LocalDateTime bannedUntil;
     private int numReports;
     private LocalDateTime createdAt;
 }
