@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,5 +26,7 @@ public interface StartupRepository extends JpaRepository<Startup, UUID> {
     boolean existsByNameAndFounderId(String name, UUID founderId);
 
     Page<Startup> findByNumReportsGreaterThan(int numReports, Pageable pageable);
+
+    List<Startup> findByIsBannedTrueAndBannedUntilBefore(LocalDateTime now);
 
 }
