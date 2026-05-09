@@ -1,5 +1,7 @@
 package com.foundersync.startup_service.controller;
 
+import com.foundersync.startup_service.dto.response.StartupPhotoResponse;
+import com.foundersync.startup_service.security.AuthenticatedUser;
 import com.foundersync.startup_service.service.StartupPhotoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,29 +19,25 @@ public class StartupPhotoController {
 
     private final StartupPhotoService startupPhotoService;
 
-    // UPLOAD PHOTO
     @PostMapping("/{startupId}/photos")
     public ResponseEntity<String> uploadPhoto(
             @PathVariable UUID startupId,
-            @RequestHeader("X-User-Id") UUID userId,
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user,
             @RequestParam("file") MultipartFile file) throws IOException {
-        String photoUrl = startupPhotoService.uploadPhoto(startupId, userId, file);
-        return ResponseEntity.ok(photoUrl);
+        return ResponseEntity.ok(startupPhotoService.uploadPhoto(startupId, user.getUserId(), file));
     }
 
-    // GET ALL PHOTOS
     @GetMapping("/{startupId}/photos")
-    public ResponseEntity<List<String>> getPhotos(
+    public ResponseEntity<List<StartupPhotoResponse>> getPhotos(
             @PathVariable UUID startupId) {
         return ResponseEntity.ok(startupPhotoService.getPhotos(startupId));
     }
 
-    // DELETE PHOTO
     @DeleteMapping("/photos/{photoId}")
     public ResponseEntity<Void> deletePhoto(
             @PathVariable UUID photoId,
-            @RequestHeader("X-User-Id") UUID userId) {
-        startupPhotoService.deletePhoto(photoId, userId);
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user) {
+        startupPhotoService.deletePhoto(photoId, user.getUserId());
         return ResponseEntity.noContent().build();
     }
 }

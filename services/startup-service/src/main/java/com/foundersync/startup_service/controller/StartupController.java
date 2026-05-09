@@ -4,6 +4,7 @@ import com.foundersync.startup_service.dto.request.StartupRequest;
 import com.foundersync.startup_service.dto.request.UpdateStartupRequest;
 import com.foundersync.startup_service.dto.response.PageResponse;
 import com.foundersync.startup_service.dto.response.StartupResponse;
+import com.foundersync.startup_service.security.AuthenticatedUser;
 import com.foundersync.startup_service.service.StartupService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,16 +21,13 @@ public class StartupController {
 
     private final StartupService startupService;
 
-    // CREATE STARTUP
     @PostMapping
     public ResponseEntity<StartupResponse> createStartup(
             @Valid @RequestBody StartupRequest request,
-            @RequestHeader("X-User-Id") UUID founderId) {
-        return ResponseEntity.ok(startupService.createStartup(request, founderId));
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user) {
+        return ResponseEntity.ok(startupService.createStartup(request, user.getUserId()));
     }
 
-    // GET ALL STARTUPS
-    // GET ALL STARTUPS (PAGINATED)
     @GetMapping
     public ResponseEntity<PageResponse<StartupResponse>> getAllStartups(
             @RequestParam(defaultValue = "0") int page,
@@ -37,41 +35,36 @@ public class StartupController {
         return ResponseEntity.ok(startupService.getAllStartups(page, size));
     }
 
-    // GET STARTUP BY ID
     @GetMapping("/{id}")
     public ResponseEntity<StartupResponse> getStartupById(@PathVariable UUID id) {
         return ResponseEntity.ok(startupService.getStartupById(id));
     }
 
-    // SEARCH STARTUPS
     @GetMapping("/search")
     public ResponseEntity<List<StartupResponse>> searchStartups(
             @RequestParam String name) {
         return ResponseEntity.ok(startupService.searchStartups(name));
     }
 
-    // GET MY STARTUPS
     @GetMapping("/my")
     public ResponseEntity<List<StartupResponse>> getMyStartups(
-            @RequestHeader("X-User-Id") UUID userId) {
-        return ResponseEntity.ok(startupService.getMyStartups(userId));
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user) {
+        return ResponseEntity.ok(startupService.getMyStartups(user.getUserId()));
     }
 
-    // UPDATE STARTUP
     @PutMapping("/{id}")
     public ResponseEntity<StartupResponse> updateStartup(
             @PathVariable UUID id,
             @RequestBody UpdateStartupRequest request,
-            @RequestHeader("X-User-Id") UUID userId) {
-        return ResponseEntity.ok(startupService.updateStartup(id, request, userId));
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user) {
+        return ResponseEntity.ok(startupService.updateStartup(id, request, user.getUserId()));
     }
 
-    // DELETE STARTUP
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteStartup(
             @PathVariable UUID id,
-            @RequestHeader("X-User-Id") UUID userId) {
-        startupService.deleteStartup(id, userId);
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user) {
+        startupService.deleteStartup(id, user.getUserId());
         return ResponseEntity.noContent().build();
     }
 }

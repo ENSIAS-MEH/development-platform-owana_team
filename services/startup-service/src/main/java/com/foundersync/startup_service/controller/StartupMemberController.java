@@ -1,6 +1,7 @@
 package com.foundersync.startup_service.controller;
 
 import com.foundersync.startup_service.dto.response.StartupMemberResponse;
+import com.foundersync.startup_service.security.AuthenticatedUser;
 import com.foundersync.startup_service.service.StartupMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,28 +17,25 @@ public class StartupMemberController {
 
     private final StartupMemberService startupMemberService;
 
-    // GET ALL MEMBERS OF A STARTUP
     @GetMapping("/{startupId}/members")
     public ResponseEntity<List<StartupMemberResponse>> getMembers(
             @PathVariable UUID startupId) {
         return ResponseEntity.ok(startupMemberService.getMembers(startupId));
     }
 
-    // CHECK IF USER IS MEMBER
     @GetMapping("/{startupId}/members/check")
     public ResponseEntity<Boolean> isMember(
             @PathVariable UUID startupId,
-            @RequestHeader("X-User-Id") UUID userId) {
-        return ResponseEntity.ok(startupMemberService.isMember(startupId, userId));
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user) {
+        return ResponseEntity.ok(startupMemberService.isMember(startupId, user.getUserId()));
     }
 
-    // REMOVE MEMBER
     @DeleteMapping("/{startupId}/members/{userId}")
     public ResponseEntity<Void> removeMember(
             @PathVariable UUID startupId,
             @PathVariable UUID userId,
-            @RequestHeader("X-User-Id") UUID founderId) {
-        startupMemberService.removeMember(startupId, userId, founderId);
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user) {
+        startupMemberService.removeMember(startupId, userId, user.getUserId());
         return ResponseEntity.noContent().build();
     }
 }

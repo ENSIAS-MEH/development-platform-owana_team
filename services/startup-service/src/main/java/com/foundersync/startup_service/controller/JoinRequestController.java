@@ -2,6 +2,7 @@ package com.foundersync.startup_service.controller;
 
 import com.foundersync.startup_service.dto.request.JoinRequestDTO;
 import com.foundersync.startup_service.dto.response.JoinRequestResponse;
+import com.foundersync.startup_service.security.AuthenticatedUser;
 import com.foundersync.startup_service.service.JoinRequestService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,37 +19,33 @@ public class JoinRequestController {
 
     private final JoinRequestService joinRequestService;
 
-    // SEND JOIN REQUEST
     @PostMapping("/join")
     public ResponseEntity<JoinRequestResponse> sendJoinRequest(
             @Valid @RequestBody JoinRequestDTO request,
-            @RequestHeader("X-User-Id") UUID userId) {
-        return ResponseEntity.ok(joinRequestService.sendJoinRequest(request, userId));
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user) {
+        return ResponseEntity.ok(joinRequestService.sendJoinRequest(request, user.getUserId()));
     }
 
-    // GET PENDING REQUESTS (founder only)
     @GetMapping("/{startupId}/join-requests")
     public ResponseEntity<List<JoinRequestResponse>> getPendingRequests(
             @PathVariable UUID startupId,
-            @RequestHeader("X-User-Id") UUID founderId) {
-        return ResponseEntity.ok(joinRequestService.getPendingRequests(startupId, founderId));
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user) {
+        return ResponseEntity.ok(joinRequestService.getPendingRequests(startupId, user.getUserId()));
     }
 
-    // ACCEPT JOIN REQUEST
     @PutMapping("/join-requests/{requestId}/accept")
     public ResponseEntity<Void> acceptJoinRequest(
             @PathVariable UUID requestId,
-            @RequestHeader("X-User-Id") UUID founderId) {
-        joinRequestService.acceptJoinRequest(requestId, founderId);
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user) {
+        joinRequestService.acceptJoinRequest(requestId, user.getUserId());
         return ResponseEntity.ok().build();
     }
 
-    // IGNORE (DELETE) JOIN REQUEST
     @DeleteMapping("/join-requests/{requestId}/ignore")
     public ResponseEntity<Void> ignoreJoinRequest(
             @PathVariable UUID requestId,
-            @RequestHeader("X-User-Id") UUID founderId) {
-        joinRequestService.ignoreJoinRequest(requestId, founderId);
+            @RequestAttribute("authenticatedUser") AuthenticatedUser user) {
+        joinRequestService.ignoreJoinRequest(requestId, user.getUserId());
         return ResponseEntity.noContent().build();
     }
 }

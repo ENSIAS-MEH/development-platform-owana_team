@@ -1,5 +1,6 @@
 package com.foundersync.startup_service.service;
 
+import com.foundersync.startup_service.dto.response.StartupPhotoResponse;
 import com.foundersync.startup_service.exception.ResourceNotFoundException;
 import com.foundersync.startup_service.exception.UnauthorizedException;
 import com.foundersync.startup_service.model.Startup;
@@ -28,10 +29,10 @@ public class StartupPhotoService {
     private final StartupRepository startupRepository;
     private final S3Client s3Client;
 
-    @Value("${aws.bucket-name}")
+    @Value("${app.aws.bucket-name}")
     private String bucketName;
 
-    @Value("${aws.region}")
+    @Value("${app.aws.region}")
     private String region;
 
     // ══════════════════════════════
@@ -75,10 +76,13 @@ public class StartupPhotoService {
     // ══════════════════════════════
     // GET ALL PHOTOS OF A STARTUP
     // ══════════════════════════════
-    public List<String> getPhotos(UUID startupId) {
+    public List<StartupPhotoResponse> getPhotos(UUID startupId) {
         return startupPhotoRepository.findByStartupId(startupId)
                 .stream()
-                .map(StartupPhoto::getPhotoUrl)
+                .map(photo -> StartupPhotoResponse.builder()
+                        .id(photo.getId())
+                        .photoUrl(photo.getPhotoUrl())
+                        .build())
                 .collect(Collectors.toList());
     }
 
