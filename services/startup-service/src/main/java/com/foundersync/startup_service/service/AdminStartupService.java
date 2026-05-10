@@ -3,9 +3,12 @@ package com.foundersync.startup_service.service;
 import com.foundersync.startup_service.dto.request.BanStartupRequest;
 import com.foundersync.startup_service.dto.response.PageResponse;
 import com.foundersync.startup_service.dto.response.StartupResponse;
+import com.foundersync.startup_service.event.StartupEventPublisher;
 import com.foundersync.startup_service.exception.BadRequestException;
 import com.foundersync.startup_service.exception.ResourceNotFoundException;
 import com.foundersync.startup_service.model.Startup;
+import com.foundersync.startup_service.model.StartupMember;
+import com.foundersync.startup_service.repository.StartupMemberRepository;
 import com.foundersync.startup_service.repository.StartupReportRepository;
 import com.foundersync.startup_service.repository.StartupRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,14 +29,15 @@ public class AdminStartupService {
 
     private final StartupRepository startupRepository;
     private final StartupReportRepository startupReportRepository;
+    private final StartupMemberRepository startupMemberRepository;
+    private final StartupEventPublisher eventPublisher;
 
     // ══════════════════════════════
-    // GET ALL STARTUPS (admin sees everything)
+    // GET ALL STARTUPS
     // ══════════════════════════════
     public PageResponse<StartupResponse> getAllStartups(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Startup> startupPage = startupRepository.findAll(pageable);
-        return mapToPageResponse(startupPage);
+        return mapToPageResponse(startupRepository.findAll(pageable));
     }
 
     // ══════════════════════════════
@@ -41,14 +45,16 @@ public class AdminStartupService {
     // ══════════════════════════════
     public PageResponse<StartupResponse> getReportedStartups(int page, int size, int minReports) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("numReports").descending());
-        Page<Startup> startupPage = startupRepository.findByNumReportsGreaterThan(minReports - 1, pageable);
-        return mapToPageResponse(startupPage);
+        return mapToPageResponse(
+                startupRepository.findByNumReportsGreaterThan(minReports - 1, pageable)
+        );
     }
 
     // ══════════════════════════════
     // BAN STARTUP
     // ══════════════════════════════
     public void banStartup(UUID startupId, BanStartupRequest request) {
+
         Startup startup = startupRepository.findById(startupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Startup not found"));
 
@@ -63,13 +69,25 @@ public class AdminStartupService {
         startup.setBannedAt(LocalDateTime.now());
         startupRepository.save(startup);
 
-        // TODO: notify all members via RabbitMQ
+        List<UUID> memberIds = startupMemberRepository
+                .findByStartupId(startupId)
+                .stream()
+                .map(StartupMember::getUserId)
+                .collect(Collectors.toList());
+
+        eventPublisher.publishStartupBanned(
+                memberIds,
+                startup.getName(),
+                startupId,
+                request.getBanReason()
+        );
     }
 
     // ══════════════════════════════
     // UNBAN STARTUP
     // ══════════════════════════════
     public void unbanStartup(UUID startupId) {
+
         Startup startup = startupRepository.findById(startupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Startup not found"));
 
@@ -84,20 +102,41 @@ public class AdminStartupService {
         startup.setBannedAt(null);
         startupRepository.save(startup);
 
-        // TODO: notify all members via RabbitMQ
+        List<UUID> memberIds = startupMemberRepository
+                .findByStartupId(startupId)
+                .stream()
+                .map(StartupMember::getUserId)
+                .collect(Collectors.toList());
+
+        eventPublisher.publishStartupUnbanned(
+                memberIds,
+                startup.getName(),
+                startupId
+        );
     }
 
     // ══════════════════════════════
     // DELETE STARTUP PERMANENTLY
     // ══════════════════════════════
     public void deleteStartup(UUID startupId) {
+
         Startup startup = startupRepository.findById(startupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Startup not found"));
 
+        List<UUID> memberIds = startupMemberRepository
+                .findByStartupId(startupId)
+                .stream()
+                .map(StartupMember::getUserId)
+                .collect(Collectors.toList());
+
+        eventPublisher.publishStartupDeleted(
+                memberIds,
+                startup.getName(),
+                startupId
+        );
+
         startupReportRepository.deleteByStartupId(startupId);
         startupRepository.delete(startup);
-
-        // TODO: notify all members via RabbitMQ
     }
 
     // ══════════════════════════════

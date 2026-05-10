@@ -2,6 +2,7 @@ package com.foundersync.startup_service.service;
 
 import com.foundersync.startup_service.dto.request.JoinRequestDTO;
 import com.foundersync.startup_service.dto.response.JoinRequestResponse;
+import com.foundersync.startup_service.event.StartupEventPublisher;
 import com.foundersync.startup_service.exception.BadRequestException;
 import com.foundersync.startup_service.exception.ResourceNotFoundException;
 import com.foundersync.startup_service.exception.UnauthorizedException;
@@ -21,6 +22,7 @@ public class JoinRequestService {
     private final JoinRequestRepository joinRequestRepository;
     private final StartupRepository startupRepository;
     private final StartupMemberRepository startupMemberRepository;
+    private final StartupEventPublisher eventPublisher;
 
     // ══════════════════════════════
     // SEND JOIN REQUEST
@@ -51,8 +53,12 @@ public class JoinRequestService {
 
         JoinRequest saved = joinRequestRepository.save(joinRequest);
 
-        // TODO: call Chat Service → send automatic message to founder
-        // TODO: call Notification Service → notify founder
+        eventPublisher.publishJoinRequestReceived(
+                startup.getFounderId(),
+                userId,
+                startup.getName(),
+                startup.getId()
+        );
 
         return mapToResponse(saved);
     }
@@ -105,18 +111,29 @@ public class JoinRequestService {
         joinRequest.setStatus(JoinRequestStatus.ACCEPTED);
         joinRequestRepository.save(joinRequest);
 
-        // TODO: call Notification Service → notify user that he was accepted
+        List<UUID> memberIds = startupMemberRepository
+                .findByStartupId(joinRequest.getStartupId())
+                .stream()
+                .map(StartupMember::getUserId)
+                .collect(Collectors.toList());
+
+        eventPublisher.publishJoinRequestAccepted(
+                joinRequest.getUserId(),
+                founderId,
+                startup.getName(),
+                startup.getId(),
+                memberIds
+        );
     }
 
     // ══════════════════════════════
-    // IGNORE (DELETE) JOIN REQUEST
+    // IGNORE JOIN REQUEST
     // ══════════════════════════════
     public void ignoreJoinRequest(UUID requestId, UUID founderId) {
 
         JoinRequest joinRequest = joinRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Join request not found"));
 
-        // ← AJOUTER CETTE VÉRIFICATION
         if (joinRequest.getStatus() != JoinRequestStatus.PENDING) {
             throw new BadRequestException("Cannot ignore a request that has already been accepted");
         }
@@ -127,6 +144,13 @@ public class JoinRequestService {
         if (!startup.getFounderId().equals(founderId)) {
             throw new UnauthorizedException("Only the founder can ignore join requests");
         }
+
+        eventPublisher.publishJoinRequestIgnored(
+                joinRequest.getUserId(),
+                founderId,
+                startup.getName(),
+                startup.getId()
+        );
 
         joinRequestRepository.delete(joinRequest);
     }

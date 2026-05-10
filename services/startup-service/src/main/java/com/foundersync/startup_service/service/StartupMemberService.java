@@ -1,6 +1,7 @@
 package com.foundersync.startup_service.service;
 
 import com.foundersync.startup_service.dto.response.StartupMemberResponse;
+import com.foundersync.startup_service.event.StartupEventPublisher;
 import com.foundersync.startup_service.exception.BadRequestException;
 import com.foundersync.startup_service.exception.ResourceNotFoundException;
 import com.foundersync.startup_service.exception.UnauthorizedException;
@@ -20,9 +21,10 @@ public class StartupMemberService {
 
     private final StartupMemberRepository startupMemberRepository;
     private final StartupRepository startupRepository;
+    private final StartupEventPublisher eventPublisher;
 
     // ══════════════════════════════
-    // GET ALL MEMBERS OF A STARTUP
+    // GET ALL MEMBERS
     // ══════════════════════════════
     public List<StartupMemberResponse> getMembers(UUID startupId) {
         startupRepository.findById(startupId)
@@ -62,6 +64,13 @@ public class StartupMemberService {
         }
 
         startupMemberRepository.deleteByStartupIdAndUserId(startupId, userId);
+
+        eventPublisher.publishMemberRemoved(
+                userId,
+                founderId,
+                startup.getName(),
+                startup.getId()
+        );
     }
 
     // ══════════════════════════════

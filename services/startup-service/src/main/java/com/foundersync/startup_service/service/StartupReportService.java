@@ -2,6 +2,7 @@ package com.foundersync.startup_service.service;
 
 import com.foundersync.startup_service.dto.request.ReportStartupRequest;
 import com.foundersync.startup_service.dto.response.StartupReportResponse;
+import com.foundersync.startup_service.event.StartupEventPublisher;
 import com.foundersync.startup_service.exception.BadRequestException;
 import com.foundersync.startup_service.exception.ResourceNotFoundException;
 import com.foundersync.startup_service.model.Startup;
@@ -21,6 +22,7 @@ public class StartupReportService {
 
     private final StartupReportRepository startupReportRepository;
     private final StartupRepository startupRepository;
+    private final StartupEventPublisher eventPublisher;
 
     // ══════════════════════════════
     // REPORT A STARTUP
@@ -52,6 +54,14 @@ public class StartupReportService {
 
         startup.setNumReports(startup.getNumReports() + 1);
         startupRepository.save(startup);
+
+        eventPublisher.publishStartupReported(
+                startup.getFounderId(),
+                reporterId,
+                startup.getName(),
+                startup.getId(),
+                request.getReason()
+        );
     }
 
     // ══════════════════════════════
