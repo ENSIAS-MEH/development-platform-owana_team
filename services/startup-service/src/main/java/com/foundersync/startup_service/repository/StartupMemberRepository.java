@@ -5,6 +5,7 @@ import com.foundersync.startup_service.model.StartupRole;
 import com.foundersync.startup_service.model.StartupRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,5 +24,6 @@ public interface StartupMemberRepository extends JpaRepository<StartupMember, UU
 
     List<StartupMember> findByStartupIdAndStartupRole(UUID startupId, StartupRole startupRole);
 
+    @Transactional
     void deleteByStartupIdAndUserId(UUID startupId, UUID userId);
 }

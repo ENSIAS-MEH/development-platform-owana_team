@@ -4,6 +4,7 @@ import com.foundersync.startup_service.dto.request.StartupRequest;
 import com.foundersync.startup_service.dto.request.UpdateStartupRequest;
 import com.foundersync.startup_service.dto.response.PageResponse;
 import com.foundersync.startup_service.dto.response.StartupResponse;
+import com.foundersync.startup_service.event.StartupEventPublisher;
 import com.foundersync.startup_service.exception.ResourceNotFoundException;
 import com.foundersync.startup_service.exception.UnauthorizedException;
 import com.foundersync.startup_service.model.Startup;
@@ -28,6 +29,7 @@ public class StartupService {
 
     private final StartupRepository startupRepository;
     private final StartupMemberRepository startupMemberRepository;
+    private final StartupEventPublisher eventPublisher;
 
     // ══════════════════════════════
     // CREATE STARTUP
@@ -55,6 +57,12 @@ public class StartupService {
                 .build();
 
         startupMemberRepository.save(founderMember);
+
+        eventPublisher.publishStartupCreated(
+                saved.getId(),
+                founderId,
+                saved.getName()
+        );
 
         return mapToResponse(saved);
     }

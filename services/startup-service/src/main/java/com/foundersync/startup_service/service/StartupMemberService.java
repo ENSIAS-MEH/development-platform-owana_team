@@ -10,6 +10,7 @@ import com.foundersync.startup_service.repository.StartupMemberRepository;
 import com.foundersync.startup_service.repository.StartupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -46,6 +47,7 @@ public class StartupMemberService {
     // ══════════════════════════════
     // REMOVE MEMBER
     // ══════════════════════════════
+    @Transactional
     public void removeMember(UUID startupId, UUID userId, UUID founderId) {
 
         var startup = startupRepository.findById(startupId)

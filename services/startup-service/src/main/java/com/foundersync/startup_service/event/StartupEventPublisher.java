@@ -216,4 +216,27 @@ public class StartupEventPublisher {
                 event
         );
     }
+
+
+    // ══════════════════════════════
+    // STARTUP CREATED
+    // Chat Service → crée le groupchat de la startup
+    // ══════════════════════════════
+    public void publishStartupCreated(UUID startupId, UUID founderId, String startupName) {
+
+        NotificationEvent event = NotificationEvent.builder()
+                .type("STARTUP_CREATED")
+                .startupId(startupId)
+                .senderId(founderId)
+                .startupName(startupName)
+                .founderId(founderId)
+                .message("Startup " + startupName + " has been created")
+                .build();
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.STARTUP_EXCHANGE,
+                RabbitMQConfig.STARTUP_CREATED_KEY,
+                event
+        );
+    }
 }

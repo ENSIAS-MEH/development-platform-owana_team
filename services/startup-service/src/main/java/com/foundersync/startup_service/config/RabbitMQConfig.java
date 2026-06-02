@@ -15,6 +15,7 @@ public class RabbitMQConfig {
     public static final String NOTIFICATION_QUEUE      = "foundersync.notification.queue";
     public static final String CHAT_QUEUE              = "foundersync.chat.queue";
 
+    public static final String STARTUP_CREATED_KEY = "startup.created";
     public static final String JOIN_REQUEST_RECEIVED_KEY = "join.request.received";
     public static final String JOIN_REQUEST_ACCEPTED_KEY = "join.request.accepted";
     public static final String JOIN_REQUEST_IGNORED_KEY  = "join.request.ignored";
@@ -24,6 +25,7 @@ public class RabbitMQConfig {
     public static final String STARTUP_UNBANNED_KEY      = "startup.unbanned";
     public static final String STARTUP_REPORTED_KEY      = "startup.reported";
     public static final String STARTUP_DELETED_KEY       = "startup.deleted";
+
 
     @Bean
     public TopicExchange startupExchange() {
@@ -54,6 +56,14 @@ public class RabbitMQConfig {
                 .bind(chatQueue())
                 .to(startupExchange())
                 .with("join.request.received");
+    }
+
+    @Bean
+    public Binding chatStartupCreatedBinding() {
+        return BindingBuilder
+                .bind(chatQueue())
+                .to(startupExchange())
+                .with(STARTUP_CREATED_KEY);
     }
 
     @Bean
