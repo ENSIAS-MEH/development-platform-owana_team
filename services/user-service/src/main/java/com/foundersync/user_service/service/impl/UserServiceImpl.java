@@ -138,10 +138,10 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ProfileNotFoundException(
                         "Profile not found for userId: " + userId));
 
-        // Delete old picture from S3 if exists
-        if (profile.getProfilePictureURL() != null) {
-            storageService.deleteFile(profile.getProfilePictureURL());
-        }
+//        // Delete old picture from S3 if exists
+//        if (profile.getProfilePictureURL() != null) {
+//            storageService.deleteFile(profile.getProfilePictureURL());
+//        }
 
         // Upload new picture
         String imageUrl = storageService.uploadProfilePicture(file, userId.toString());
