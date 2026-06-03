@@ -1,21 +1,42 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/auth_db
-    username: postgres
-    password: Ayaaaa240503@
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+  mail:
+    host: smtp.gmail.com
+    port: 465
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 
 app:
   jwt:
-    secret: "founderssync_jwt_secret_minimum_32_characters_ok"
+    secret: ${JWT_SECRET:founderssync_jwt_secret_minimum_32_characters_ok}
     expiration: 86400000
     refresh-expiration: 604800000
+  frontend-url: http://localhost:4200
+  admin:
+    email: ${ADMIN_USERNAME}
+    password: ${ADMIN_PASSWORD}
 
 springdoc:
   api-docs:
