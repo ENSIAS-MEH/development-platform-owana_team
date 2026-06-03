@@ -1,4 +1,0 @@
-com\founderssync\gateway\config\CorsConfig.class
-com\founderssync\gateway\config\GatewayConfig.class
-com\founderssync\gateway\controllers\FallbackController.class
-com\founderssync\gateway\GatewayApplication.class
