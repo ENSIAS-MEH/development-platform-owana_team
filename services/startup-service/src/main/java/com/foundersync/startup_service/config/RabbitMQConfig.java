@@ -66,6 +66,14 @@ public class RabbitMQConfig {
                 .with(STARTUP_CREATED_KEY);
     }
 
+
+    @Bean
+    public Binding chatJoinAcceptedBinding() {
+        return BindingBuilder
+                .bind(chatQueue())
+                .to(startupExchange())
+                .with(JOIN_REQUEST_ACCEPTED_KEY);
+    }
     @Bean
     public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
