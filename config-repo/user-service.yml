@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/users_db
-    username: postgres
-    password: CD918754
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -21,9 +21,9 @@ springdoc:
 
 app:
   jwt:
-    secret: "founderssync_jwt_secret_minimum_32_characters_ok"
+    secret: ${JWT_SECRET:founderssync_jwt_secret_minimum_32_characters_ok}
   aws:
-    access-key: AKIAZOAEA6G33RHLDW2O
-    secret-key: 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
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
     region: eu-west-3
     bucket-name: founderssync-uploads
