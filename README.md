@@ -18,7 +18,6 @@ Le projet consiste à offrir un écosystème en ligne où les utilisateurs peuve
 
 ### Acteurs Secondaires
 * **L'Administrateur :** Il gère la plateforme, modère les projets et les utilisateurs, et s'assure du bon fonctionnement général du système.
-* **Le Mentor / Investisseur Simulé :** Il intervient pour évaluer les pitch decks, donner des retours constructifs sur les business models et valider les étapes cruciales de la startup.
 
 ## Les Étapes de la Simulation
 Le parcours utilisateur sur FoundersSync est structuré en plusieurs phases clés, imitant le cycle de vie réel d'une startup :
@@ -33,8 +32,8 @@ Le parcours utilisateur sur FoundersSync est structuré en plusieurs phases clé
 Pour assurer une architecture robuste, évolutive et moderne, nous avons opté pour la stack suivante :
 
 ### Frontend 
-* **Angular :** Framework principal pour la création d'une interface dynamique (SPA), modulaire et réactive.
-* **TypeScript / HTML / Tailwind CSS :** Pour un code typé, maintenable et un design responsive.
+* **Next.js :** Framework principal pour la création d'une interface dynamique et réactive.
+* **TypeScript / HTML / CSS :** Pour un code typé, maintenable et un design responsive.
 
 ### Backend 
 * **Spring Boot :** Pour la création d'une API RESTful robuste, sécurisée et facile à maintenir.
