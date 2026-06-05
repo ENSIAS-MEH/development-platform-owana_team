@@ -23,6 +23,12 @@ public class Comment {
     @Column(nullable = false)
     private String content;
 
+    // For replies — null means top-level comment
+    private UUID parentId;
+
+    @Column(nullable = false)
+    private Integer likesCount = 0;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -30,6 +36,7 @@ public class Comment {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (likesCount == null) likesCount = 0;
     }
 
     @PreUpdate
