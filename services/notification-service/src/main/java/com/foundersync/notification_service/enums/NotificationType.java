@@ -12,5 +12,6 @@ public enum NotificationType {
     STARTUP_DELETED,
     STARTUP_CREATED,
     LIKE,
-    COMMENT
+    COMMENT,
+    NEW_MESSAGE
 }
