@@ -22,4 +22,5 @@ public class UserProfileResponse {
     private String phoneNumber;
     private String location;
     private LocalDateTime createdAt;
+    private boolean isBanned;
 }

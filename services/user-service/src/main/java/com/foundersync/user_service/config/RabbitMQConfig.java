@@ -13,6 +13,8 @@ public class RabbitMQConfig {
     public static final String EXCHANGE = "founderssync.exchange";
     public static final String USER_REGISTERED_QUEUE = "user.registered.queue";
     public static final String USER_REGISTERED_KEY = "user.registered";
+    public static final String USER_BANNED_QUEUE = "user.banned.queue";
+    public static final String USER_BANNED_KEY = "user.banned";
 
     @Bean
     public TopicExchange foundersyncExchange() {
@@ -20,8 +22,22 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue userBannedQueue() {
+        return QueueBuilder.durable(USER_BANNED_QUEUE).build();
+    }
+
+    @Bean
     public Queue userRegisteredQueue() {
         return QueueBuilder.durable(USER_REGISTERED_QUEUE).build();
+    }
+
+    @Bean
+    public Binding userBannedBinding(Queue userBannedQueue,
+                                     TopicExchange foundersyncExchange) {
+        return BindingBuilder
+                .bind(userBannedQueue)
+                .to(foundersyncExchange)
+                .with(USER_BANNED_KEY);
     }
 
     @Bean
