@@ -19,6 +19,9 @@ public class NotificationService {
     public void saveFromEvent(NotificationEvent event) {
         NotificationType type = NotificationType.valueOf(event.getType());
 
+        // Resolve referenceId: postId takes priority over startupId
+        UUID referenceId = event.getPostId() != null ? event.getPostId() : event.getStartupId();
+
         // Destinataire unique
         if (event.getRecipientId() != null) {
             Notification notification = Notification.builder()
@@ -26,7 +29,7 @@ public class NotificationService {
                     .senderId(event.getSenderId())
                     .type(type)
                     .message(event.getMessage())
-                    .referenceId(event.getStartupId())
+                    .referenceId(referenceId)
                     .build();
             notificationRepository.save(notification);
         }
@@ -39,7 +42,7 @@ public class NotificationService {
                             .senderId(event.getSenderId())
                             .type(type)
                             .message(event.getMessage())
-                            .referenceId(event.getStartupId())
+                            .referenceId(referenceId)
                             .build())
                     .toList();
             notificationRepository.saveAll(notifications);

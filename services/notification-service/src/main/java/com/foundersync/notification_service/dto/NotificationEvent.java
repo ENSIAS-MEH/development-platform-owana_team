@@ -4,8 +4,10 @@ import lombok.*;
 import java.util.List;
 import java.util.UUID;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class NotificationEvent {
     private String type;
@@ -18,4 +20,5 @@ public class NotificationEvent {
     private UUID founderId;
     private UUID requesterId;
     private String autoMessage;
+    private UUID postId;
 }

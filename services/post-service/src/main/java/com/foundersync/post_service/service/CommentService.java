@@ -2,6 +2,7 @@ package com.foundersync.post_service.service;
 
 import com.foundersync.post_service.entity.Comment;
 import com.foundersync.post_service.entity.CommentLike;
+import com.foundersync.post_service.event.PostEventPublisher;
 import com.foundersync.post_service.repository.CommentLikeRepository;
 import com.foundersync.post_service.repository.CommentRepository;
 import com.foundersync.post_service.repository.PostRepository;
@@ -18,6 +19,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final PostRepository postRepository;
+    private final PostEventPublisher postEventPublisher;
 
     public Comment addComment(UUID postId, UUID userId, String content) {
         Comment comment = new Comment();
@@ -29,6 +31,9 @@ public class CommentService {
         postRepository.findById(postId).ifPresent(post -> {
             post.setCommentsCount(post.getCommentsCount() + 1);
             postRepository.save(post);
+            if (!post.getUserId().equals(userId)) {
+                postEventPublisher.publishPostCommented(post.getUserId(), userId, postId, content);
+            }
         });
 
         return saved;
@@ -42,9 +47,28 @@ public class CommentService {
         reply.setContent(content);
         Comment saved = commentRepository.save(reply);
 
+        // Notify post owner
         postRepository.findById(postId).ifPresent(post -> {
             post.setCommentsCount(post.getCommentsCount() + 1);
             postRepository.save(post);
+            if (!post.getUserId().equals(userId)) {
+                postEventPublisher.publishPostCommented(post.getUserId(), userId, postId, content);
+            }
+        });
+
+        // Notify parent comment owner
+        commentRepository.findById(parentId).ifPresent(parentComment -> {
+            UUID parentAuthorId = parentComment.getUserId();
+            // Don't notify if replying to own comment
+            if (!parentAuthorId.equals(userId)) {
+                // Don't send duplicate if parent author is also the post owner
+                boolean isAlsoPostOwner = postRepository.findById(postId)
+                        .map(post -> post.getUserId().equals(parentAuthorId))
+                        .orElse(false);
+                if (!isAlsoPostOwner) {
+                    postEventPublisher.publishCommentReplied(parentAuthorId, userId, postId, content);
+                }
+            }
         });
 
         return saved;

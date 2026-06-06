@@ -13,5 +13,6 @@ public enum NotificationType {
     STARTUP_CREATED,
     LIKE,
     COMMENT,
+    REPLY,
     NEW_MESSAGE
 }
