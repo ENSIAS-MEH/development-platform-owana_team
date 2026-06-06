@@ -174,6 +174,7 @@ public class StartupService {
                 .sector(startup.getSector())
                 .location(startup.getLocation())
                 .highlights(startup.getHighlights())
+                .programmes(startup.getProgrammes())   // <-- add this line
                 .founderId(startup.getFounderId())
                 .isActive(startup.isActive())
                 .isBanned(startup.isBanned())
@@ -183,4 +184,5 @@ public class StartupService {
                 .createdAt(startup.getCreatedAt())
                 .build();
     }
+
 }
