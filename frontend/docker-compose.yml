@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  app:
+    image: ${DOCKER_IMAGE_PATH}:rec
+    container_name: ${CONTAINER_NAME}
+    restart: always
+    ports:
+      - '127.0.0.1:${HOST_PORT}:${CONTAINER_PORT}'
+    environment:
+      - PORT=${CONTAINER_PORT}
