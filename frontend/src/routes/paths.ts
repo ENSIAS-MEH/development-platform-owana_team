@@ -29,6 +29,7 @@ export const paths = {
   // DASHBOARD (regular users)
   dashboard: {
     root: ROOTS.DASHBOARD,
+
     profile: {
       root: `${ROOTS.DASHBOARD}/profile`,
       profile: `${ROOTS.DASHBOARD}/profile/profile`,
@@ -36,9 +37,18 @@ export const paths = {
       security: `${ROOTS.DASHBOARD}/profile/profile/security`,
       photo: `${ROOTS.DASHBOARD}/profile/profile/photo`,
     },
+
     users: {
       root: `${ROOTS.DASHBOARD}/users`,
       accounts: `${ROOTS.DASHBOARD}/users/accounts`,
+    },
+
+    startup: {
+      root: `${ROOTS.DASHBOARD}/startup`,
+      new: `${ROOTS.DASHBOARD}/startup/new`,
+      my: `${ROOTS.DASHBOARD}/startup/my`,
+      details: (id: string) => `${ROOTS.DASHBOARD}/startup/${id}`,
+      members: (id: string) => `${ROOTS.DASHBOARD}/startup/${id}/members`,
     },
   },
 

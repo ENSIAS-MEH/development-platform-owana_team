@@ -5,6 +5,7 @@ import {
   faBell,
   faLock,
   faCamera,
+  faRocket,
 } from '@fortawesome/free-solid-svg-icons';
 
 import { paths } from 'src/routes/paths';
@@ -14,11 +15,12 @@ import { paths } from 'src/routes/paths';
 // ----------------------------------------------------------------------
 
 const ICONS = {
-  home:         <FontAwesomeIcon icon={faHome} />,
-  profile:      <FontAwesomeIcon icon={faUser} />,
-  notifications:<FontAwesomeIcon icon={faBell} />,
-  security:     <FontAwesomeIcon icon={faLock} />,
-  photo:        <FontAwesomeIcon icon={faCamera} />,
+  home: <FontAwesomeIcon icon={faHome} />,
+  profile: <FontAwesomeIcon icon={faUser} />,
+  notifications: <FontAwesomeIcon icon={faBell} />,
+  security: <FontAwesomeIcon icon={faLock} />,
+  photo: <FontAwesomeIcon icon={faCamera} />,
+  startup: <FontAwesomeIcon icon={faRocket} />,
 };
 
 export const navData = [
@@ -51,6 +53,30 @@ export const navData = [
           {
             title: 'Security',
             path: paths.dashboard.profile.security,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    subheader: 'Startup',
+    items: [
+      {
+        title: 'Startup',
+        path: paths.dashboard.startup.root,
+        icon: ICONS.startup,
+        children: [
+          {
+            title: 'List',
+            path: paths.dashboard.startup.root,
+          },
+          {
+            title: 'My Startups',
+            path: paths.dashboard.startup.my,
+          },
+          {
+            title: 'Create',
+            path: paths.dashboard.startup.new,
           },
         ],
       },
