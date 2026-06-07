@@ -7,7 +7,7 @@ const {
   markMessagesRead
 } = require('../controllers/messageController');
 const { uploadFile } = require('../controllers/fileController');
-router.get('/conversations/:id/messages', protect, getConversationMessages);
-router.put('/conversations/:id/read', protect, markMessagesRead);
+router.get('/:id/messages', protect, getConversationMessages);
+router.put('/:id/read', protect, markMessagesRead);
 router.post('/upload', protect, upload.single('file'), uploadFile);
 module.exports = router;

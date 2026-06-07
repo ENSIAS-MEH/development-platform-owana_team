@@ -72,6 +72,15 @@ public class GatewayConfig {
                                 .setFallbackUri("forward:/fallback")))
                         .uri(startupServiceUrl))
 
+                // Admin Startups
+                .route("admin-startup-service", r -> r
+                        .path("/api/admin/startups/**")
+                        .filters(f -> f.circuitBreaker(c -> c
+                                .setName("startupCircuitBreaker")
+                                .setFallbackUri("forward:/fallback")))
+                        .uri(startupServiceUrl))
+
+
                 // Posts & feed
                 .route("post-service", r -> r
                         .path("/api/posts/**")
@@ -82,15 +91,15 @@ public class GatewayConfig {
 
                 // Chat REST
                 .route("chat-service-rest", r -> r
-                        .path("/api/conversations/**", "/api/groups/**")
+                        .path("/api/chat/**")
                         .filters(f -> f.circuitBreaker(c -> c
                                 .setName("chatCircuitBreaker")
                                 .setFallbackUri("forward:/fallback")))
                         .uri(chatServiceUrl))
 
-                // Chat WebSocket
+                // Chat WebSocket (Socket.IO)
                 .route("chat-service-ws", r -> r
-                        .path("/ws/**")
+                        .path("/socket.io/**")
                         .uri(chatServiceUrl))
 
                 // Notifications
