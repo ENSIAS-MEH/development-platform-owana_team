@@ -1,5 +1,6 @@
 package com.foundersync.notification_service.service;
 
+import com.foundersync.notification_service.client.UserServiceClient;
 import com.foundersync.notification_service.dto.NotificationEvent;
 import com.foundersync.notification_service.entity.Notification;
 import com.foundersync.notification_service.enums.NotificationType;
@@ -15,6 +16,19 @@ import java.util.UUID;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final UserServiceClient userServiceClient;
+
+    private String resolveUserName(UUID userId) {
+        try {
+            var user = userServiceClient.getUserById(userId);
+            String name = (user.getFirstName() != null ? user.getFirstName() : "") +
+                    " " +
+                    (user.getLastName() != null ? user.getLastName() : "");
+            return name.trim().isEmpty() ? "Someone" : name.trim();
+        } catch (Exception e) {
+            return "Someone";
+        }
+    }
 
     public void saveFromEvent(NotificationEvent event) {
         NotificationType type = NotificationType.valueOf(event.getType());
@@ -22,26 +36,36 @@ public class NotificationService {
         // Resolve referenceId: postId takes priority over startupId
         UUID referenceId = event.getPostId() != null ? event.getPostId() : event.getStartupId();
 
+        // Resolve sender name if message contains a UUID
+        String message = event.getMessage();
+        if (event.getSenderId() != null && message != null
+                && message.contains(event.getSenderId().toString())) {
+            String senderName = resolveUserName(event.getSenderId());
+            message = message.replace(event.getSenderId().toString(), senderName);
+        }
+
         // Destinataire unique
         if (event.getRecipientId() != null) {
             Notification notification = Notification.builder()
                     .recipientId(event.getRecipientId())
                     .senderId(event.getSenderId())
                     .type(type)
-                    .message(event.getMessage())
+                    .message(message)
                     .referenceId(referenceId)
                     .build();
             notificationRepository.save(notification);
         }
 
-        // Plusieurs destinataires
+        // Plusieurs destinataires — exclude sender from recipients
         if (event.getRecipientIds() != null && !event.getRecipientIds().isEmpty()) {
+            String finalMessage = message;
             List<Notification> notifications = event.getRecipientIds().stream()
+                    .filter(recipientId -> !recipientId.equals(event.getSenderId()))
                     .map(recipientId -> Notification.builder()
                             .recipientId(recipientId)
                             .senderId(event.getSenderId())
                             .type(type)
-                            .message(event.getMessage())
+                            .message(finalMessage)
                             .referenceId(referenceId)
                             .build())
                     .toList();

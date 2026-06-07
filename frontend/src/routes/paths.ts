@@ -50,6 +50,11 @@ export const paths = {
       details: (id: string) => `${ROOTS.DASHBOARD}/startup/${id}`,
       members: (id: string) => `${ROOTS.DASHBOARD}/startup/${id}/members`,
     },
+
+    feed: {
+      root: `${ROOTS.DASHBOARD}/feed`,
+      saved: `${ROOTS.DASHBOARD}/feed/saved`,
+    },
   },
 
   // ADMIN
