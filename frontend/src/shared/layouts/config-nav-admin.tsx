@@ -4,6 +4,7 @@ import {
   faUsers,
   faKey,
   faShieldAlt,
+  faRocket,
 } from '@fortawesome/free-solid-svg-icons';
 
 import { paths } from 'src/routes/paths';
@@ -13,6 +14,7 @@ import { paths } from 'src/routes/paths';
 const ICONS = {
   home:     <FontAwesomeIcon icon={faHome} />,
   users:    <FontAwesomeIcon icon={faUsers} />,
+  startups: <FontAwesomeIcon icon={faRocket} />,
   security: <FontAwesomeIcon icon={faShieldAlt} />,
   password: <FontAwesomeIcon icon={faKey} />,
 };
@@ -35,6 +37,11 @@ export const adminNavData = [
         title: 'Users',
         path: paths.admin.users,
         icon: ICONS.users,
+      },
+      {
+        title: 'Startups',
+        path: paths.admin.startups,
+        icon: ICONS.startups,
       },
     ],
   },

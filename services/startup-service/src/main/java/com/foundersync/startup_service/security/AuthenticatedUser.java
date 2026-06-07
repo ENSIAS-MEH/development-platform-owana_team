@@ -14,10 +14,10 @@ public class AuthenticatedUser {
     private String role;
 
     public boolean isAdmin() {
-        return "ROLE_ADMIN".equals(role);
+        return "ADMIN".equals(role);
     }
 
     public boolean isUser() {
-        return "ROLE_USER".equals(role);
+        return "USER".equals(role);
     }
 }

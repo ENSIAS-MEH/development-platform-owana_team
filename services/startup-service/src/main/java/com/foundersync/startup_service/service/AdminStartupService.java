@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -118,6 +119,7 @@ public class AdminStartupService {
     // ══════════════════════════════
     // DELETE STARTUP PERMANENTLY
     // ══════════════════════════════
+    @Transactional
     public void deleteStartup(UUID startupId) {
 
         Startup startup = startupRepository.findById(startupId)
