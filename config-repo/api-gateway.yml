@@ -1,6 +1,6 @@
-auth-service-url: http://localhost:8081
-user-service-url: http://localhost:8082
-startup-service-url: http://localhost:8083
-post-service-url: http://localhost:8084
-chat-service-url: http://localhost:8085
-notification-service-url: http://localhost:8086
+auth-service-url: http://auth-service:8081
+user-service-url: http://user-service:8082
+startup-service-url: http://startup-service:8083
+post-service-url: http://post-service:8084
+chat-service-url: http://chat-service:8085
+notification-service-url: http://notification-service:8086

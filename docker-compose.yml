@@ -108,6 +108,7 @@ services:
   auth-service:
     build: ./services/auth-service
     container_name: auth-service
+    restart: on-failure
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
@@ -121,6 +122,9 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin@foundersync.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      AWS_ACCESS_KEY: ${USER_AWS_ACCESS_KEY:-}
+      AWS_SECRET_KEY: ${USER_AWS_SECRET_KEY:-}
+      AWS_BUCKET_NAME: ${USER_AWS_BUCKET_NAME:-}
     ports:
       - "8081:8081"
     networks:
@@ -136,6 +140,7 @@ services:
   user-service:
     build: ./services/user-service
     container_name: user-service
+    restart: on-failure
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/users_db
@@ -145,9 +150,9 @@ services:
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-founderssync_jwt_secret_minimum_32_characters_ok}
-      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY:-}
-      AWS_SECRET_KEY: ${AWS_SECRET_KEY:-}
-      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-founderssync-uploads}
+      AWS_ACCESS_KEY: ${USER_AWS_ACCESS_KEY:-}
+      AWS_SECRET_KEY: ${USER_AWS_SECRET_KEY:-}
+      AWS_BUCKET_NAME: ${USER_AWS_BUCKET_NAME:-}
     ports:
       - "8082:8082"
     networks:
@@ -163,6 +168,7 @@ services:
   startup-service:
     build: ./services/startup-service
     container_name: startup-service
+    restart: on-failure
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/startup_db
@@ -171,9 +177,9 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY:-}
-      AWS_SECRET_KEY: ${AWS_SECRET_KEY:-}
-      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-founderssync-uploads}
+      AWS_ACCESS_KEY: ${STARTUP_AWS_ACCESS_KEY:-}
+      AWS_SECRET_KEY: ${STARTUP_AWS_SECRET_KEY:-}
+      AWS_BUCKET_NAME: ${STARTUP_AWS_BUCKET_NAME:-}
     ports:
       - "8083:8083"
     networks:
@@ -189,6 +195,7 @@ services:
   post-service:
     build: ./services/post-service
     container_name: post-service
+    restart: on-failure
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/post_service_db
@@ -197,9 +204,9 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY:-}
-      AWS_SECRET_KEY: ${AWS_SECRET_KEY:-}
-      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-founderssync-uploads}
+      AWS_ACCESS_KEY: ${POST_AWS_ACCESS_KEY:-}
+      AWS_SECRET_KEY: ${POST_AWS_SECRET_KEY:-}
+      AWS_BUCKET_NAME: ${POST_AWS_BUCKET_NAME:-}
       USER_SERVICE_URL: http://user-service:8082
     ports:
       - "8084:8084"
@@ -216,15 +223,16 @@ services:
   chat-service:
     build: ./services/chat-service
     container_name: chat-service
+    restart: on-failure
     environment:
       PORT: 8085
       MONGO_URI: mongodb://mongodb:27017/chatdb
       JWT_SECRET: ${JWT_SECRET:-founderssync_jwt_secret_minimum_32_characters_ok}
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY:-}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_KEY:-}
+      AWS_ACCESS_KEY_ID: ${CHAT_AWS_ACCESS_KEY:-}
+      AWS_SECRET_ACCESS_KEY: ${CHAT_AWS_SECRET_KEY:-}
       AWS_REGION: eu-west-3
-      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-founderssync-uploads}
+      AWS_BUCKET_NAME: ${CHAT_AWS_BUCKET_NAME:-}
     ports:
       - "8085:8085"
     networks:
@@ -238,6 +246,7 @@ services:
   notification-service:
     build: ./services/notification-service
     container_name: notification-service
+    restart: on-failure
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notification_service_db
@@ -261,15 +270,15 @@ services:
   # ──────────────────────────────────────────
   # FRONTEND
   # ──────────────────────────────────────────
-  frontend:
-    build: ./frontend
-    container_name: frontend
-    ports:
-      - "4200:80"
-    networks:
-      - foundersync-network
-    depends_on:
-      - api-gateway
+  # frontend:
+  #   build: ./frontend
+  #   container_name: frontend
+  #   ports:
+  #     - "4200:80"
+  #   networks:
+  #     - foundersync-network
+  #   depends_on:
+  #     - api-gateway
 
 # ──────────────────────────────────────────
 # VOLUMES & NETWORKS
