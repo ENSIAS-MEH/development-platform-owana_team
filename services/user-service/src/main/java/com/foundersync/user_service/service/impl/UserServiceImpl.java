@@ -104,6 +104,7 @@ public class UserServiceImpl implements UserService {
                 .phoneNumber(profile.getPhoneNumber())
                 .location(profile.getLocation())
                 .createdAt(profile.getCreatedAt())
+                .isBanned(profile.isBanned())
                 .build();
     }
 

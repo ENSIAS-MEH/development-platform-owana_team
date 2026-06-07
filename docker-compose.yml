@@ -1,0 +1,283 @@
+services:
+
+  # ──────────────────────────────────────────
+  # DATABASES
+  # ──────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - foundersync-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7-jammy
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - foundersync-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - foundersync-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────
+  # INFRASTRUCTURE
+  # ──────────────────────────────────────────
+  config-server:
+    build: ./infrastructure/config-server
+    container_name: config-server
+    environment:
+      SPRING_PROFILES_ACTIVE: native
+      SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS: file:/config-repo
+    volumes:
+      - ./config-repo:/config-repo
+    ports:
+      - "8888:8888"
+    networks:
+      - foundersync-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8888/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    build: ./infrastructure/api-gateway
+    container_name: api-gateway
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      AUTH_SERVICE_URL: http://auth-service:8081
+      USER_SERVICE_URL: http://user-service:8082
+      STARTUP_SERVICE_URL: http://startup-service:8083
+      POST_SERVICE_URL: http://post-service:8084
+      CHAT_SERVICE_URL: http://chat-service:8085
+      NOTIFICATION_SERVICE_URL: http://notification-service:8086
+      CORS_ALLOWED_ORIGINS: http://localhost:4200,http://localhost:3000
+    ports:
+      - "8080:8080"
+    networks:
+      - foundersync-network
+    depends_on:
+      config-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────────
+  # SERVICES
+  # ──────────────────────────────────────────
+  auth-service:
+    build: ./services/auth-service
+    container_name: auth-service
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET:-founderssync_jwt_secret_minimum_32_characters_ok}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin@foundersync.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+    ports:
+      - "8081:8081"
+    networks:
+      - foundersync-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  user-service:
+    build: ./services/user-service
+    container_name: user-service
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/users_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET:-founderssync_jwt_secret_minimum_32_characters_ok}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY:-}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY:-}
+      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-founderssync-uploads}
+    ports:
+      - "8082:8082"
+    networks:
+      - foundersync-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  startup-service:
+    build: ./services/startup-service
+    container_name: startup-service
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/startup_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY:-}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY:-}
+      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-founderssync-uploads}
+    ports:
+      - "8083:8083"
+    networks:
+      - foundersync-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  post-service:
+    build: ./services/post-service
+    container_name: post-service
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/post_service_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY:-}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY:-}
+      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-founderssync-uploads}
+      USER_SERVICE_URL: http://user-service:8082
+    ports:
+      - "8084:8084"
+    networks:
+      - foundersync-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  chat-service:
+    build: ./services/chat-service
+    container_name: chat-service
+    environment:
+      PORT: 8085
+      MONGO_URI: mongodb://mongodb:27017/chatdb
+      JWT_SECRET: ${JWT_SECRET:-founderssync_jwt_secret_minimum_32_characters_ok}
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_KEY:-}
+      AWS_REGION: eu-west-3
+      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-founderssync-uploads}
+    ports:
+      - "8085:8085"
+    networks:
+      - foundersync-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notification-service:
+    build: ./services/notification-service
+    container_name: notification-service
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notification_service_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "8086:8086"
+    networks:
+      - foundersync-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ──────────────────────────────────────────
+  # FRONTEND
+  # ──────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "4200:80"
+    networks:
+      - foundersync-network
+    depends_on:
+      - api-gateway
+
+# ──────────────────────────────────────────
+# VOLUMES & NETWORKS
+# ──────────────────────────────────────────
+volumes:
+  pg_data:
+  mongo_data:
+
+networks:
+  foundersync-network:
+    driver: bridge

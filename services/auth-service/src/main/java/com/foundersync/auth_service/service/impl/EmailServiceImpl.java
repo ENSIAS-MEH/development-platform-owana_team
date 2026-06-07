@@ -15,7 +15,7 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${app.frontend-url:http://localhost:4200}")
+    @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
     @Value("${spring.mail.username}")
@@ -32,7 +32,7 @@ public class EmailServiceImpl implements EmailService {
                     "Hello,\n\n" +
                             "You requested to reset your password.\n\n" +
                             "Click the link below to reset it (valid for 15 minutes):\n\n" +
-                            frontendUrl + "/reset-password?token=" + resetToken + "\n\n" +
+                            frontendUrl + "/auth/new-password?token=" + resetToken + "\n\n" +
                             "If you did not request this, please ignore this email.\n\n" +
                             "The FoundersSync Team"
             );

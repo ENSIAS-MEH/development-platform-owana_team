@@ -10,6 +10,7 @@ import { Searchbar } from '../components/searchbar';
 import { MenuButton } from '../components/menu-button';
 import { AccountDrawer } from '../components/account-drawer';
 import { SettingsButton } from '../components/settings-button';
+import { NotificationPopup } from '../components/notifications-popup';
 
 import type { HeaderSectionProps } from './header-section';
 import type { AccountDrawerProps } from '../components/account-drawer';
@@ -61,25 +62,27 @@ export type HeaderBaseProps = HeaderSectionProps & {
     settings?: boolean;
     searchbar?: boolean;
     menuButton?: boolean;
+    notifications?: boolean;
   };
 };
 
 export function HeaderBase({
-  sx,
-  data,
-  slots,
-  slotProps,
-  onOpenNav,
-  layoutQuery,
-  slotsDisplay: {
-    signIn = false,
-    account = true,
-    settings = true,
-    searchbar = true,
-    menuButton = true,
-  } = {},
-  ...other
-}: HeaderBaseProps) {
+                             sx,
+                             data,
+                             slots,
+                             slotProps,
+                             onOpenNav,
+                             layoutQuery,
+                             slotsDisplay: {
+                               signIn = false,
+                               account = true,
+                               settings = true,
+                               searchbar = true,
+                               menuButton = true,
+                               notifications = true,
+                             } = {},
+                             ...other
+                           }: HeaderBaseProps) {
   const theme = useTheme();
 
   return (
@@ -125,6 +128,9 @@ export function HeaderBase({
             >
               {/* -- Searchbar -- */}
               {searchbar && <Searchbar data-slot="searchbar" data={data?.nav} />}
+
+              {/* -- Notifications -- */}
+              {notifications && <NotificationPopup data-slot="notifications" />}
 
               {/* -- Settings button -- */}
               {settings && <SettingsButton data-slot="settings" />}

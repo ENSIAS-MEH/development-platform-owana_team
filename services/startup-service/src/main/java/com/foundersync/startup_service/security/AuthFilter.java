@@ -67,7 +67,7 @@ public class AuthFilter extends OncePerRequestFilter {
             // ══════════════════════════════
             // Check admin endpoints
             // ══════════════════════════════
-            if (path.startsWith("/api/admin") && !"ROLE_ADMIN".equals(role)) {
+            if (path.startsWith("/api/admin") && !"ADMIN".equals(role)) {
                 sendError(response, 403, "Forbidden: admin access required");
                 return;
             }

@@ -17,7 +17,6 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    // Ajouter un commentaire
     @PostMapping("/{postId}/comments/{userId}")
     public ResponseEntity<Comment> addComment(
             @PathVariable UUID postId,
@@ -27,7 +26,17 @@ public class CommentController {
                 .body(commentService.addComment(postId, userId, content));
     }
 
-    // Modifier un commentaire
+    // Reply to a comment
+    @PostMapping("/{postId}/comments/{parentId}/reply/{userId}")
+    public ResponseEntity<Comment> addReply(
+            @PathVariable UUID postId,
+            @PathVariable UUID parentId,
+            @PathVariable UUID userId,
+            @RequestBody String content) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(commentService.addReply(postId, parentId, userId, content));
+    }
+
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<Comment> updateComment(
             @PathVariable UUID commentId,
@@ -35,16 +44,30 @@ public class CommentController {
         return ResponseEntity.ok(commentService.updateComment(commentId, content));
     }
 
-    // Supprimer un commentaire
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable UUID commentId) {
         commentService.deleteComment(commentId);
         return ResponseEntity.noContent().build();
     }
 
-    // Consulter les commentaires d'un post
     @GetMapping("/{postId}/comments")
     public ResponseEntity<List<Comment>> getCommentsByPostId(@PathVariable UUID postId) {
         return ResponseEntity.ok(commentService.getCommentsByPostId(postId));
+    }
+
+    // Like a comment
+    @PostMapping("/comments/{commentId}/like/{userId}")
+    public ResponseEntity<String> likeComment(
+            @PathVariable UUID commentId,
+            @PathVariable UUID userId) {
+        return ResponseEntity.ok(commentService.likeComment(commentId, userId));
+    }
+
+    // Unlike a comment
+    @DeleteMapping("/comments/{commentId}/like/{userId}")
+    public ResponseEntity<String> unlikeComment(
+            @PathVariable UUID commentId,
+            @PathVariable UUID userId) {
+        return ResponseEntity.ok(commentService.unlikeComment(commentId, userId));
     }
 }

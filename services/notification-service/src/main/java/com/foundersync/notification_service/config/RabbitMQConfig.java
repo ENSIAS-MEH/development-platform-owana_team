@@ -10,12 +10,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String STARTUP_EXCHANGE    = "foundersync.startup.exchange";
-    public static final String NOTIFICATION_QUEUE  = "foundersync.notification.queue";
+    public static final String STARTUP_EXCHANGE   = "foundersync.startup.exchange";
+    public static final String POST_EXCHANGE      = "foundersync.post.exchange";
+    public static final String NOTIFICATION_QUEUE = "foundersync.notification.queue";
 
     @Bean
     public TopicExchange startupExchange() {
         return new TopicExchange(STARTUP_EXCHANGE);
+    }
+
+    @Bean
+    public TopicExchange postExchange() {
+        return new TopicExchange(POST_EXCHANGE);
     }
 
     @Bean
@@ -24,10 +30,18 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Binding notificationBinding() {
+    public Binding startupNotificationBinding() {
         return BindingBuilder
                 .bind(notificationQueue())
                 .to(startupExchange())
+                .with("#");
+    }
+
+    @Bean
+    public Binding postNotificationBinding() {
+        return BindingBuilder
+                .bind(notificationQueue())
+                .to(postExchange())
                 .with("#");
     }
 

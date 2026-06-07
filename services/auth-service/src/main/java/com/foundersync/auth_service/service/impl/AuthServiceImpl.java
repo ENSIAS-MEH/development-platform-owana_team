@@ -228,6 +228,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
         user.setBanned(true);
         userRepository.save(user);
+        eventPublisher.publishUserBanned(userId);
         log.info("User banned: {}", userId);
     }
 
@@ -238,6 +239,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + userId));
         user.setBanned(false);
         userRepository.save(user);
+        eventPublisher.publishUserUnbanned(userId);
         log.info("User unbanned: {}", userId);
     }
 }

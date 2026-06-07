@@ -39,7 +39,11 @@ public class PostController {
 
     // Consulter tous les posts
     @GetMapping
-    public ResponseEntity<List<PostResponse>> getAllPosts() {
+    public ResponseEntity<List<PostResponse>> getAllPosts(
+            @RequestParam(required = false) UUID currentUserId) {
+        if (currentUserId != null) {
+            return ResponseEntity.ok(postService.getAllPosts(currentUserId));
+        }
         return ResponseEntity.ok(postService.getAllPosts());
     }
 

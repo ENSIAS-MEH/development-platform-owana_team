@@ -40,4 +40,22 @@ public class UserEventListener {
             log.error("Failed to handle UserRegisteredEvent: {}", e.getMessage());
         }
     }
+    @RabbitListener(queues = "user.banned.queue")
+    public void handleUserBanned(Map<String, Object> event) {
+        try {
+            UUID userId = UUID.fromString((String) event.get("userId"));
+            boolean banned = Boolean.TRUE.equals(event.get("banned"));
+
+            userProfileRepository.findByUserId(userId).ifPresentOrElse(
+                    profile -> {
+                        profile.setBanned(banned);
+                        userProfileRepository.save(profile);
+                        log.info("Profile ban status updated for userId: {} → isBanned={}", userId, banned);
+                    },
+                    () -> log.warn("No profile found for userId: {} — ban status not synced", userId)
+            );
+        } catch (Exception e) {
+            log.error("Failed to handle UserBannedEvent: {}", e.getMessage());
+        }
+    }
 }

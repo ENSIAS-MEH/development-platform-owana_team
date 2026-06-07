@@ -13,6 +13,14 @@ public class PostResponse {
     private Integer commentsCount;
     private Integer saveCount;
     private UUID userId;
+
+    // ADD THESE 3 FIELDS
+    private String firstName;
+    private String lastName;
+    private String profilePictureURL;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private boolean likedByCurrentUser;
+    private boolean savedByCurrentUser;
 }

@@ -1,5 +1,6 @@
 package com.foundersync.user_service.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,4 +23,6 @@ public class UserProfileResponse {
     private String phoneNumber;
     private String location;
     private LocalDateTime createdAt;
+    @JsonProperty("isBanned")
+    private boolean isBanned;
 }
