@@ -24,6 +24,12 @@ const getUserConversations = async (userId) => {
 
 // Créer un chat de groupe pour une startup
 const createGroupConversation = async (startupId, participantIds) => {
+  // If a group conversation already exists for this startup, return it
+  const existing = await Conversation.findOne({ type: 'group', startupId });
+  if (existing) {
+    return existing;
+  }
+
   return await Conversation.create({
     type: 'group',
     participants: participantIds,
