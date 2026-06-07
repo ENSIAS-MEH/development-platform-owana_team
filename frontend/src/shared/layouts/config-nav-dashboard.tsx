@@ -6,6 +6,7 @@ import {
   faLock,
   faCamera,
   faRocket,
+  faRss,
 } from '@fortawesome/free-solid-svg-icons';
 
 import { paths } from 'src/routes/paths';
@@ -21,6 +22,7 @@ const ICONS = {
   security: <FontAwesomeIcon icon={faLock} />,
   photo: <FontAwesomeIcon icon={faCamera} />,
   startup: <FontAwesomeIcon icon={faRocket} />,
+  feed: <FontAwesomeIcon icon={faRss} />,
 };
 
 export const navData = [
@@ -77,6 +79,26 @@ export const navData = [
           {
             title: 'Create',
             path: paths.dashboard.startup.new,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    subheader: 'Feed',
+    items: [
+      {
+        title: 'Feed',
+        path: paths.dashboard.feed.root,
+        icon: ICONS.feed,
+        children: [
+          {
+            title: "Fil d'actualité",
+            path: paths.dashboard.feed.root,
+          },
+          {
+            title: 'Posts sauvegardés',
+            path: paths.dashboard.feed.saved,
           },
         ],
       },
