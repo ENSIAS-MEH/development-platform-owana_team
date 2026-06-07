@@ -57,6 +57,8 @@ export const paths = {
     root: ROOTS.ADMIN,
     users: `${ROOTS.ADMIN}/users`,
     userDetail: (userId: string) => `${ROOTS.ADMIN}/users/${userId}`,
+    startups: `${ROOTS.ADMIN}/startups`,
+    startupDetail: (startupId: string) => `${ROOTS.ADMIN}/startups/${startupId}`,
     settings: `${ROOTS.ADMIN}/settings`,
   },
 };

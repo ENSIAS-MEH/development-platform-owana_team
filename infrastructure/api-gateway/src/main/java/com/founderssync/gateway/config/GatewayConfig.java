@@ -72,6 +72,15 @@ public class GatewayConfig {
                                 .setFallbackUri("forward:/fallback")))
                         .uri(startupServiceUrl))
 
+                // Admin Startups
+                .route("admin-startup-service", r -> r
+                        .path("/api/admin/startups/**")
+                        .filters(f -> f.circuitBreaker(c -> c
+                                .setName("startupCircuitBreaker")
+                                .setFallbackUri("forward:/fallback")))
+                        .uri(startupServiceUrl))
+
+
                 // Posts & feed
                 .route("post-service", r -> r
                         .path("/api/posts/**")
