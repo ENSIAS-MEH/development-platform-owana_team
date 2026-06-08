@@ -102,9 +102,9 @@ export function MessageArea({ conversationId }: Props) {
             newCache[senderId] =
               [profile.firstName, profile.lastName].filter(Boolean).join(' ') ||
               profile.username ||
-              senderId;
+              'Someone';
           } catch {
-            newCache[senderId] = senderId;
+            // Don't cache failures — will retry on next render
           }
         })
       );
@@ -118,7 +118,7 @@ export function MessageArea({ conversationId }: Props) {
 
   // Helper to get sender display name
   const getSenderName = useCallback(
-    (senderId: string): string => senderNameCache[senderId] || senderId,
+    (senderId: string): string => senderNameCache[senderId] || 'Someone',
     [senderNameCache]
   );
 
@@ -333,7 +333,7 @@ export function MessageArea({ conversationId }: Props) {
         {typingUserNames.length > 0 && (
           <Box sx={{ px: 2, py: 1 }}>
             <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-              {formatTypingIndicator(typingUserNames)} typing...
+              {formatTypingIndicator(typingUserNames.map((id) => getSenderName(id)))} typing...
             </Typography>
           </Box>
         )}

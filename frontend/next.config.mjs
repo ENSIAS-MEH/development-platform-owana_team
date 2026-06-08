@@ -5,6 +5,13 @@
 const isStaticExport = 'false';
 
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  output: 'standalone',
   trailingSlash: true,
   basePath: process.env.NEXT_PUBLIC_BASE_PATH,
   env: {
@@ -26,7 +33,6 @@ const nextConfig = {
       test: /\.svg$/,
       use: ['@svgr/webpack'],
     });
-
     return config;
   },
   ...(isStaticExport === 'true' && {

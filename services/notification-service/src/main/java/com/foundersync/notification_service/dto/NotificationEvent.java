@@ -21,4 +21,6 @@ public class NotificationEvent {
     private UUID requesterId;
     private String autoMessage;
     private UUID postId;
+    private String content;
+    private String conversationId;
 }

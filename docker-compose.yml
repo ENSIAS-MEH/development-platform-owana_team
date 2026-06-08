@@ -233,6 +233,7 @@ services:
       AWS_SECRET_ACCESS_KEY: ${CHAT_AWS_SECRET_KEY:-}
       AWS_REGION: eu-west-3
       AWS_BUCKET_NAME: ${CHAT_AWS_BUCKET_NAME:-}
+      USER_SERVICE_URL: http://user-service:8082
     ports:
       - "8085:8085"
     networks:
@@ -270,15 +271,15 @@ services:
   # ──────────────────────────────────────────
   # FRONTEND
   # ──────────────────────────────────────────
-  # frontend:
-  #   build: ./frontend
-  #   container_name: frontend
-  #   ports:
-  #     - "4200:80"
-  #   networks:
-  #     - foundersync-network
-  #   depends_on:
-  #     - api-gateway
+  frontend:
+     build: ./frontend
+     container_name: frontend
+     ports:
+       - "3000:3000"
+     networks:
+       - foundersync-network
+     depends_on:
+       - api-gateway
 
 # ──────────────────────────────────────────
 # VOLUMES & NETWORKS

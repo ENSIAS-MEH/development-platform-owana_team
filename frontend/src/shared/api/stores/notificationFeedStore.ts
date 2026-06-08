@@ -46,10 +46,10 @@ export const useNotificationFeedStore = create<NotificationFeedState>((set, get)
         id: n.id,
         userId: n.recipientId || userId,
         title: n.message || '',
-        content: n.message || '',
+        content: '',
         type: n.type || 'SYSTEM',
         read: n.isRead ?? n.read ?? false,
-        createdAt: n.createdAt,
+        createdAt: n.createdAt?.endsWith('Z') ? n.createdAt : (n.createdAt + 'Z'),
         referenceId: n.referenceId || null,
       }));
       set({ notifications, loading: false });
@@ -136,7 +136,8 @@ export const useNotificationFeedStore = create<NotificationFeedState>((set, get)
 
     const interval = setInterval(() => {
       get().fetchUnreadCount(userId);
-    }, 30_000);
+      get().fetchNotifications(userId);
+    }, 10_000);
 
     set({ pollingInterval: interval });
   },

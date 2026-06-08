@@ -59,7 +59,7 @@ type ConversationListPanelProps = {
 
 export function ConversationListPanel({ onSelectConversation, selectedId }: ConversationListPanelProps) {
   const { user } = useAuthContext();
-  const { unreadCounts, setConversations, updateUnreadCount } = useChatStore();
+  const { unreadCounts, setConversations, updateUnreadCount, conversations: storeConversations } = useChatStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [recipientSelectorOpen, setRecipientSelectorOpen] = useState(false);
@@ -107,13 +107,14 @@ export function ConversationListPanel({ onSelectConversation, selectedId }: Conv
 
   // Resolve participant names from user-service
   useEffect(() => {
-    if (!conversations || !user) return;
+    const allConversations = storeConversations.length > 0 ? storeConversations : conversations;
+    if (!allConversations || !user) return;
 
     const currentIds = [user?.id, user?.userId].filter(Boolean);
 
     // Collect all participant IDs we haven't resolved yet
     const idsToResolve = new Set<string>();
-    conversations.forEach((conv) => {
+    allConversations.forEach((conv) => {
       conv.participants.forEach((pid) => {
         if (!currentIds.includes(pid) && !userNameCache[pid]) {
           idsToResolve.add(pid);
@@ -135,24 +136,28 @@ export function ConversationListPanel({ onSelectConversation, selectedId }: Conv
             const profile = response.data;
             const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ')
               || profile.username
-              || pid;
+              || 'Someone';
             newCache[pid] = name;
             if (profile.profilePictureURL) {
               newPicCache[pid] = profile.profilePictureURL;
             }
           } catch {
-            newCache[pid] = pid; // Fallback to ID if fetch fails
+            // Don't cache failures — will retry on next render
           }
         })
       );
 
-      setUserNameCache((prev) => ({ ...prev, ...newCache }));
-      setUserPictureCache((prev) => ({ ...prev, ...newPicCache }));
+      if (Object.keys(newCache).length > 0) {
+        setUserNameCache((prev) => ({ ...prev, ...newCache }));
+      }
+      if (Object.keys(newPicCache).length > 0) {
+        setUserPictureCache((prev) => ({ ...prev, ...newPicCache }));
+      }
     };
 
     resolveNames();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversations, user]);
+  }, [conversations, storeConversations, user]);
 
   // Also resolve startup names for group conversations
   const [startupNameCache, setStartupNameCache] = useState<Record<string, string>>({});
@@ -222,8 +227,17 @@ export function ConversationListPanel({ onSelectConversation, selectedId }: Conv
       // participants are stored as auth UUIDs
       const currentIds = [user?.id, user?.userId].filter(Boolean);
       const otherParticipant = conversation.participants.find((p) => !currentIds.includes(p));
-      if (!otherParticipant) return 'Unknown';
-      return userNameCache[otherParticipant] || otherParticipant;
+      if (!otherParticipant) return 'Someone';
+      // Show resolved name, "..." while loading, or "Someone" if fetch failed
+      if (userNameCache[otherParticipant]) {
+        return userNameCache[otherParticipant];
+      }
+      // If cache has the key but value is 'Someone', the fetch failed
+      if (otherParticipant in userNameCache) {
+        return 'Someone';
+      }
+      // Still loading — show temporary placeholder
+      return '...';
     },
     [user, userNameCache, startupNameCache]
   );
@@ -307,16 +321,8 @@ export function ConversationListPanel({ onSelectConversation, selectedId }: Conv
   if (!filteredConversations.length && !searchQuery) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        {/* Header with New Message button */}
-        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6">Messages</Typography>
-          <IconButton color="primary" onClick={handleNewMessage} aria-label="New message">
-            <Iconify icon="eva:edit-2-fill" />
-          </IconButton>
-        </Box>
-
         {/* Search input */}
-        <Box sx={{ px: 2, pb: 1 }}>
+        <Box sx={{ px: 2, pt: 2, pb: 1 }}>
           <TextField
             fullWidth
             size="small"
@@ -350,7 +356,7 @@ export function ConversationListPanel({ onSelectConversation, selectedId }: Conv
             No conversations yet
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Start a new conversation by clicking the compose button above.
+            Start a new conversation from a member&apos;s profile.
           </Typography>
         </Box>
 
@@ -368,16 +374,8 @@ export function ConversationListPanel({ onSelectConversation, selectedId }: Conv
   // --- Main Render ---
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Header with New Message button */}
-      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h6">Messages</Typography>
-        <IconButton color="primary" onClick={handleNewMessage} aria-label="New message">
-          <Iconify icon="eva:edit-2-fill" />
-        </IconButton>
-      </Box>
-
       {/* Search input */}
-      <Box sx={{ px: 2, pb: 1 }}>
+      <Box sx={{ px: 2, pt: 2, pb: 1 }}>
         <TextField
           fullWidth
           size="small"

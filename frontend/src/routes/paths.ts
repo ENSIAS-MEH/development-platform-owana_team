@@ -71,4 +71,3 @@ export const paths = {
     settings: `${ROOTS.ADMIN}/settings`,
   },
 };
-};

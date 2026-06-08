@@ -106,12 +106,13 @@ export function CommentItem({ comment, currentUserId, postId }: CommentItemProps
     ? `${(authorProfile.firstName || 'U').charAt(0)}${(authorProfile.lastName || '').charAt(0)}`
     : '';
 
-  const formattedDate = formatDistanceToNow(new Date(comment.createdAt), {
-    addSuffix: true,
-    locale: enUS,
-  });
+  const formattedDate = formatDistanceToNow(
+    new Date(comment.createdAt.endsWith('Z') ? comment.createdAt : comment.createdAt + 'Z'),
+    { addSuffix: true, locale: enUS }
+  );
 
-  const isModified = comment.updatedAt && comment.updatedAt !== comment.createdAt;
+  const isModified = comment.updatedAt &&
+    Math.abs(new Date(comment.updatedAt).getTime() - new Date(comment.createdAt).getTime()) > 2000;
 
   // -------------------------------------------------------------------------
   // Like handler

@@ -60,10 +60,10 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
 
   const isOwner = post.authorId === currentUserId;
 
-  const formattedDate = formatDistanceToNow(new Date(post.createdAt), {
-    addSuffix: true,
-    locale: enUS,
-  });
+  const formattedDate = formatDistanceToNow(
+    new Date(post.createdAt.endsWith('Z') ? post.createdAt : post.createdAt + 'Z'),
+    { addSuffix: true, locale: enUS }
+  );
 
   const authorDisplayName = author
     ? `${author.firstName} ${author.lastName}`
@@ -174,10 +174,11 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
               src={post.imageURL}
               alt="Image du post"
               loading="lazy"
-              style={{ width: '100%', maxHeight: 400, objectFit: 'cover' }}
+              style={{ width: '100%', maxHeight: 500, objectFit: 'contain', backgroundColor: '#f5f5f5' }}
               sx={{ display: 'block', borderRadius: 1, mt: 0.5 }}
             />
           )}
+
         </CardContent>
 
         <Divider />
