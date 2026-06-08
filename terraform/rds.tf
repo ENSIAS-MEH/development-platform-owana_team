@@ -7,7 +7,7 @@ resource "aws_db_instance" "postgres" {
 
   # Engine
   engine         = "postgres"
-  engine_version = "16.3"
+  engine_version = "16"
   instance_class = var.rds_instance_class
 
   # Storage
@@ -29,7 +29,7 @@ resource "aws_db_instance" "postgres" {
   multi_az               = false # Single-AZ to minimise cost; set true for HA
 
   # Maintenance
-  backup_retention_period = 7
+  backup_retention_period = 0
   backup_window           = "03:00-04:00"
   maintenance_window      = "Mon:04:00-Mon:05:00"
   deletion_protection     = false # Set true before going to real production
