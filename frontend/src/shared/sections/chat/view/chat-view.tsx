@@ -423,9 +423,9 @@ export function ChatView() {
     );
   }
 
-  // --- Desktop Layout (three-panel) ---
+  // --- Desktop Layout (two-panel) ---
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 88px)', overflow: 'hidden' }}>
       {renderStatusBanner()}
 
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -447,7 +447,7 @@ export function ChatView() {
           />
         </Box>
 
-        {/* Center Panel — Message Area */}
+        {/* Center Panel — Message Area with Contact Header */}
         <Box
           sx={{
             flex: 1,
@@ -456,25 +456,14 @@ export function ChatView() {
             flexDirection: 'column',
           }}
         >
+          {/* Contact Info Header */}
+          {selectedConversationId && (
+            <ContactInfoPanel
+              conversationId={selectedConversationId}
+              conversationType={selectedConversationType}
+            />
+          )}
           <MessageArea conversationId={selectedConversationId} />
-        </Box>
-
-        {/* Right Panel — Contact Info */}
-        <Box
-          sx={{
-            width: 280,
-            flexShrink: 0,
-            borderLeft: 1,
-            borderColor: 'divider',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <ContactInfoPanel
-            conversationId={selectedConversationId}
-            conversationType={selectedConversationType}
-          />
         </Box>
       </Box>
     </Box>

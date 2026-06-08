@@ -1,11 +1,9 @@
-import { CONFIG } from 'src/config-global';
+import { redirect } from 'next/navigation';
 
-import { BlankView } from 'src/shared/sections/blank/view';
+import { paths } from 'src/routes/paths';
 
 // ----------------------------------------------------------------------
 
-export const metadata = { title: `Dashboard - ${CONFIG.site.name}` };
-
 export default function Page() {
-  return <BlankView title="Dashboard" />;
+  redirect(paths.dashboard.feed.root);
 }

@@ -290,17 +290,6 @@ export function MessageInput({ conversationId, disabled }: Props) {
         </IconButton>
       </Stack>
 
-      {/* Character count */}
-      <Typography
-        variant="caption"
-        sx={{
-          mt: 0.5,
-          textAlign: 'right',
-          color: isOverLimit ? 'error.main' : 'text.secondary',
-        }}
-      >
-        {trimmedLength}/{MAX_MESSAGE_LENGTH}
-      </Typography>
     </Stack>
   );
 }

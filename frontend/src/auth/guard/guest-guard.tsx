@@ -32,8 +32,8 @@ export function GuestGuard({ children }: Props) {
         return;
       }
 
-      // Route admin to admin panel, regular users to dashboard
-      const destination = user?.role === 'ADMIN' ? paths.admin.root : paths.dashboard.root;
+      // Route admin to admin panel, regular users to feed
+      const destination = user?.role === 'ADMIN' ? paths.admin.root : paths.dashboard.feed.root;
       router.replace(destination);
       return;
     }

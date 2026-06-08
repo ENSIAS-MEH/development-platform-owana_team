@@ -89,7 +89,7 @@ export function JwtSignInView() {
             role = payload?.role ?? 'USER';
           } catch { /* ignore */ }
         }
-        router.replace(role === 'ADMIN' ? paths.admin.root : paths.dashboard.root);
+        router.replace(role === 'ADMIN' ? paths.admin.root : paths.dashboard.feed.root);
       }
     } catch (error: any) {
       console.error(error);

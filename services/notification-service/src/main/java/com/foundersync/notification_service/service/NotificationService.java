@@ -44,6 +44,18 @@ public class NotificationService {
             message = message.replace(event.getSenderId().toString(), senderName);
         }
 
+        // Fallback: chat-service sends content instead of message
+        if (message == null && event.getContent() != null) {
+            String senderName = event.getSenderId() != null ? resolveUserName(event.getSenderId()) : "Someone";
+            boolean isGroup = event.getRecipientIds() != null && event.getRecipientIds().size() > 1;
+
+            if (isGroup) {
+                message = senderName + " sent a message in group";
+            } else {
+                message = senderName + " sent you a message";
+            }
+        }
+
         // Destinataire unique
         if (event.getRecipientId() != null) {
             Notification notification = Notification.builder()

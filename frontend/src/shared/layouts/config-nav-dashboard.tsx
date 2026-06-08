@@ -33,13 +33,28 @@ export const navData = [
     items: [
       {
         title: 'Home',
-        path: paths.dashboard.root,
+        path: paths.dashboard.feed.root,
         icon: ICONS.home,
       },
       {
         title: 'Chat',
         path: paths.dashboard.chat.root,
         icon: ICONS.chat,
+      },
+      {
+        title: 'Feed',
+        path: paths.dashboard.feed.root,
+        icon: ICONS.feed,
+        children: [
+          {
+            title: 'News Feed',
+            path: paths.dashboard.feed.root,
+          },
+          {
+            title: 'Saved Posts',
+            path: paths.dashboard.feed.saved,
+          },
+        ],
       },
     ],
   },
@@ -86,27 +101,6 @@ export const navData = [
           {
             title: 'Create',
             path: paths.dashboard.startup.new,
-          },
-        ],
-      },
-    ],
-  },
-];
-  {
-    subheader: 'Feed',
-    items: [
-      {
-        title: 'Feed',
-        path: paths.dashboard.feed.root,
-        icon: ICONS.feed,
-        children: [
-          {
-            title: "Fil d'actualité",
-            path: paths.dashboard.feed.root,
-          },
-          {
-            title: 'Posts sauvegardés',
-            path: paths.dashboard.feed.saved,
           },
         ],
       },

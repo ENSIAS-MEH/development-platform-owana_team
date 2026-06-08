@@ -96,6 +96,9 @@ export function NotificationPopupItem({
 
   // Build navigation link based on notification type and referenceId
   const getTargetUrl = () => {
+    // Handle types that don't need referenceId
+    if (type === 'new_message') return '/dashboard/chat';
+
     if (!referenceId) return '/dashboard/feed';
 
     switch (type) {
@@ -117,6 +120,7 @@ export function NotificationPopupItem({
         return '/dashboard/feed';
     }
   };
+
 
   const handleClick = () => {
     if (!viewed && onMarkAsRead) onMarkAsRead(id);

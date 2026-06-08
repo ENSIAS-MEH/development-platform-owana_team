@@ -194,7 +194,7 @@ export function NotificationPopup(props: NotificationPopupProps) {
   };
 
   const handleDeleteAll = () => {
-    // Future: implement bulk delete via API
+    notifications.forEach((n) => deleteNotification(n.id));
     handleCloseMenu();
   };
 
@@ -274,19 +274,13 @@ export function NotificationPopup(props: NotificationPopupProps) {
           <ListItemIcon>
             <FontAwesome icon={faCheckDouble} fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Tout marquer comme lu</ListItemText>
+          <ListItemText>Mark all as read</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleDeleteAll}>
           <ListItemIcon>
             <FontAwesome icon={faTrash} fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Tout supprimer</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleSettings}>
-          <ListItemIcon>
-            <FontAwesome icon={faGear} fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Modifier les paramètres des notifications</ListItemText>
+          <ListItemText>Delete all</ListItemText>
         </MenuItem>
       </Menu>
     </Stack>
