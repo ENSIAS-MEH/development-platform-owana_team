@@ -4,7 +4,7 @@ WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY package*.json ./
-RUN npm ci --production
+RUN npm install --omit=dev
 
 COPY . .
 
