@@ -43,10 +43,6 @@ export const paths = {
       accounts: `${ROOTS.DASHBOARD}/users/accounts`,
     },
 
-    chat: {
-      root: `${ROOTS.DASHBOARD}/chat`,
-    },
-
     startup: {
       root: `${ROOTS.DASHBOARD}/startup`,
       new: `${ROOTS.DASHBOARD}/startup/new`,

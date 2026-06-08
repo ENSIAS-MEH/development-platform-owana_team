@@ -49,7 +49,7 @@ variable "private_subnet_b_cidr" {
 variable "ec2_instance_type" {
   description = "EC2 instance type for the application server. Use t2.micro for AWS Free Tier (1 vCPU / 1 GB RAM). Upgrade to t3.large (2 vCPU / 8 GB) for a real production deployment."
   type        = string
-  default     = "t2.micro" # AWS Free Tier eligible (12 months)
+  default     = "t3.micro" # AWS Free Tier eligible (12 months)
 }
 
 variable "ec2_key_pair_name" {

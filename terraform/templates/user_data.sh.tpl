@@ -12,8 +12,8 @@ echo "================================================================"
 
 # ─── 1. System update ────────────────────────────────────────────────────────
 echo "[1/8] Updating system packages..."
-dnf update -y
-dnf install -y git curl unzip tar
+dnf update -y --allowerasing || dnf update -y --skip-broken || true
+dnf install -y git curl unzip tar --allowerasing || true
 
 # ─── 2. Install Docker ───────────────────────────────────────────────────────
 echo "[2/8] Installing Docker..."
@@ -51,7 +51,7 @@ echo "[6/8] Writing environment file..."
 # NOTE on the quoted heredoc delimiter <<'ENVEOF':
 #
 # Terraform's templatefile() processes this entire script FIRST and substitutes
-# all ${var_name} placeholders with their real values before the script ever
+# all $${var_name} placeholders with their real values before the script ever
 # runs on the EC2 instance. By the time bash executes the heredoc, the values
 # are already literals in the file — there are no shell variables left to expand.
 #
@@ -122,16 +122,14 @@ echo "  .env written to $APP_DIR/.env"
 
 # ─── 6. Clone backend repository ─────────────────────────────────────────────
 echo "[7/8] Cloning FoundersSync backend..."
-if [ ! -d "$APP_DIR/backend/.git" ]; then
-  sudo -u ec2-user git clone https://github.com/NadaMesbah/backend.git "$APP_DIR/backend"
+if [ ! -d "$APP_DIR/.git" ]; then
+  sudo -u ec2-user git clone https://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@github.com/ENSIAS-MEH/development-platform-owana_team.git "$APP_DIR/repo"
+  cp -r "$APP_DIR/repo/." "$APP_DIR/"
+  rm -rf "$APP_DIR/repo"
 else
   echo "  Repo already cloned — pulling latest..."
-  sudo -u ec2-user git -C "$APP_DIR/backend" pull --ff-only
+  sudo -u ec2-user git -C "$APP_DIR" pull --ff-only
 fi
-
-# Symlink .env into the repo for Docker Compose
-ln -sf "$APP_DIR/.env" "$APP_DIR/backend/.env"
-chown -h ec2-user:ec2-user "$APP_DIR/backend/.env"
 
 # ─── 7. Wait for Docker + start the stack ────────────────────────────────────
 echo "[8/8] Starting FoundersSync stack with Docker Compose..."
@@ -140,7 +138,7 @@ sleep 5
 
 # Run as ec2-user so the docker group permission applies
 sudo -u ec2-user bash -c "
-  cd '$APP_DIR/backend'
+  cd '$APP_DIR'
   docker compose pull 2>/dev/null || true
   docker compose up -d --build 2>&1 | tee /var/log/founderssync-compose.log
 "
