@@ -19,6 +19,7 @@ const startStartupConsumer = async () => {
   await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, 'startup.created');
   await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, 'join.request.received');
   await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, 'join.request.accepted');
+  await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, 'member.removed');
 
   console.log(`Chat consumer démarré sur [${QUEUE_NAME}]`);
 
@@ -121,6 +122,39 @@ const startStartupConsumer = async () => {
           const allParticipants = [...new Set([...memberIds, newMemberId])];
           const newGroup = await createGroupConversation(startupId, allParticipants);
           console.log(`Groupe créé lors de l'acceptation: ${newGroup._id}`);
+        }
+      }
+      // CAS 4 : Membre retiré → le retirer du groupe
+      else if (event.type === 'MEMBER_REMOVED') {
+        const startupId     = event.startupId?.toString();
+        const removedUserId = event.recipientId?.toString();
+        const startupName   = event.startupName || 'la startup';
+        if (!startupId || !removedUserId) {
+          console.warn('MEMBER_REMOVED: données manquantes');
+          channel.ack(msg);
+          return;
+        }
+        const group = await Conversation.findOne({ startupId, type: 'group' });
+        if (group) {
+          if (group.participants.includes(removedUserId)) {
+            await Conversation.findByIdAndUpdate(group._id, {
+              $pull: { participants: removedUserId }
+            });
+            // System message notifying the group
+            await Message.create({
+              conversationId: group._id,
+              senderId: 'system',
+              content: `Un membre a quitté le groupe "${startupName}".`,
+              readBy: []
+            });
+            await Conversation.findByIdAndUpdate(group._id, {
+              lastMessage: `Un membre a quitté le groupe.`,
+              updatedAt: new Date()
+            });
+            console.log(`Membre ${removedUserId} retiré du groupe ${group._id}`);
+          }
+        } else {
+          console.log(`Pas de groupe trouvé pour startup: ${startupId}`);
         }
       }
       else {

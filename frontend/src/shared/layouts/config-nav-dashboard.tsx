@@ -6,6 +6,7 @@ import {
   faLock,
   faCamera,
   faRocket,
+  faComments,
   faRss,
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -22,6 +23,7 @@ const ICONS = {
   security: <FontAwesomeIcon icon={faLock} />,
   photo: <FontAwesomeIcon icon={faCamera} />,
   startup: <FontAwesomeIcon icon={faRocket} />,
+  chat: <FontAwesomeIcon icon={faComments} />,
   feed: <FontAwesomeIcon icon={faRss} />,
 };
 
@@ -33,6 +35,11 @@ export const navData = [
         title: 'Home',
         path: paths.dashboard.root,
         icon: ICONS.home,
+      },
+      {
+        title: 'Chat',
+        path: paths.dashboard.chat.root,
+        icon: ICONS.chat,
       },
     ],
   },
@@ -84,6 +91,7 @@ export const navData = [
       },
     ],
   },
+];
   {
     subheader: 'Feed',
     items: [

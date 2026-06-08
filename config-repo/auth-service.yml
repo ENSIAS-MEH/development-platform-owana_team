@@ -13,7 +13,7 @@ spring:
     show-sql: false
   mail:
     host: smtp.gmail.com
-    port: 465
+    port: 587
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     properties:
@@ -22,6 +22,11 @@ spring:
           auth: true
           starttls:
             enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com
+        transport:
+          protocol: smtp
   rabbitmq:
     host: rabbitmq
     port: 5672
@@ -33,7 +38,7 @@ app:
     secret: ${JWT_SECRET:founderssync_jwt_secret_minimum_32_characters_ok}
     expiration: 86400000
     refresh-expiration: 604800000
-  frontend-url: http://localhost:4200
+  frontend-url: http://localhost:3000
   admin:
     email: ${ADMIN_USERNAME}
     password: ${ADMIN_PASSWORD}

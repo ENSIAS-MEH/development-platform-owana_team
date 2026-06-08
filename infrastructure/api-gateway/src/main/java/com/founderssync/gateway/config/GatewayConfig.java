@@ -91,15 +91,15 @@ public class GatewayConfig {
 
                 // Chat REST
                 .route("chat-service-rest", r -> r
-                        .path("/api/conversations/**", "/api/groups/**")
+                        .path("/api/chat/**")
                         .filters(f -> f.circuitBreaker(c -> c
                                 .setName("chatCircuitBreaker")
                                 .setFallbackUri("forward:/fallback")))
                         .uri(chatServiceUrl))
 
-                // Chat WebSocket
+                // Chat WebSocket (Socket.IO)
                 .route("chat-service-ws", r -> r
-                        .path("/ws/**")
+                        .path("/socket.io/**")
                         .uri(chatServiceUrl))
 
                 // Notifications

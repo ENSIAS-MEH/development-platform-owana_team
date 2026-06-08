@@ -112,7 +112,12 @@ export function AdminUsersView() {
         `${GATEWAY_API_URL}${endpoints.users.all}?page=0&size=200`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setUsers(res.data ?? []);
+      // Normalize the ban flag: the backend may serialize it as `isBanned` or `banned`.
+      const list = (res.data ?? []).map((u: any) => ({
+        ...u,
+        isBanned: Boolean(u.isBanned ?? u.banned),
+      }));
+      setUsers(list);
     } catch (err: any) {
       setFetchError(err?.message ?? 'Failed to load users.');
     } finally {
@@ -153,7 +158,7 @@ export function AdminUsersView() {
 
       await axios.put(url, {}, { headers: { Authorization: `Bearer ${token}` } });
 
-      // Optimistically update local state
+      // Optimistically update local state for instant feedback
       setUsers((prev) =>
         prev.map((u) =>
           u.userId === confirm.userId ? { ...u, isBanned: confirm.action === 'ban' } : u
@@ -165,6 +170,8 @@ export function AdminUsersView() {
         msg: `User "${confirm.userName}" has been ${confirm.action === 'ban' ? 'banned' : 'unbanned'} successfully.`,
         severity: 'success',
       });
+      // Re-sync with the server so the status survives a refresh and stays accurate
+      fetchUsers();
     } catch (err: any) {
       setSnack({
         open: true,
