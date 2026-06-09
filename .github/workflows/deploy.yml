@@ -1,0 +1,131 @@
+name: CI/CD Pipeline — FoundersSync
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  # ─────────────────────────────────────────
+  # JOB 1 : Build et push des images Docker
+  # ─────────────────────────────────────────
+  build-docker:
+    name: Build & Push Images Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Connexion à Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push auth-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/auth-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
+
+      - name: Build & Push user-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/user-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/user-service:latest
+
+      - name: Build & Push startup-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/startup-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/startup-service:latest
+
+      - name: Build & Push post-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/post-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/post-service:latest
+
+      - name: Build & Push notification-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/notification-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/notification-service:latest
+
+      - name: Build & Push chat-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/chat-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
+
+      - name: Build & Push api-gateway
+        uses: docker/build-push-action@v5
+        with:
+          context: infrastructure/api-gateway
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/api-gateway:latest
+
+      - name: Build & Push config-server
+        uses: docker/build-push-action@v5
+        with:
+          context: infrastructure/config-server
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/config-server:latest
+
+      - name: Build & Push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+          build-args: |
+            NEXT_PUBLIC_HOST_GATEWAY_API_URL=http://${{ secrets.VM_HOST }}:8080
+            NEXT_PUBLIC_SERVER_URL=http://${{ secrets.VM_HOST }}:8080
+            NEXT_PUBLIC_ASSET_URL=http://${{ secrets.VM_HOST }}:8080
+
+  # ────────────────────────────────────────
+  # JOB 2 : Déploiement sur la VM
+  # ────────────────────────────────────────
+  deploy:
+    name: Déploiement sur la VM
+    runs-on: ubuntu-latest
+    needs: build-docker
+
+    steps:
+      - name: Déployer sur la VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ec2-user
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            APP_DIR="/opt/founderssync"
+
+            echo "==> Pulling latest code..."
+            git -C "$APP_DIR" pull --ff-only
+
+            echo "==> Connexion Docker Hub..."
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
+              -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            echo "==> Téléchargement des nouvelles images..."
+            cd "$APP_DIR"
+            docker compose pull
+
+            echo "==> Redémarrage des conteneurs..."
+            docker compose up -d
+
+            echo "==> Status des conteneurs :"
+            docker compose ps
+
+            echo "Déploiement terminé"
+            echo "API Gateway: http://${{ secrets.VM_HOST }}:8080"

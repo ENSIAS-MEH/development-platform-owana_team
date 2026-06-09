@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: user-service
+  config:
+    import: "optional:configserver:http://config-server:8888"
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+server:
+  port: 8082
