@@ -1,0 +1,204 @@
+name: CI/CD Pipeline — FoundersSync
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  # ─────────────────────────────────────────
+  # JOB 1 : Build des services Spring Boot
+  # ─────────────────────────────────────────
+  build-java:
+    name: Build Java Services (Maven)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Installer Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build auth-service
+        working-directory: services/auth-service
+        run: mvn clean package -DskipTests
+
+      - name: Build user-service
+        working-directory: services/user-service
+        run: mvn clean package -DskipTests
+
+      - name: Build startup-service
+        working-directory: services/startup-service
+        run: mvn clean package -DskipTests
+
+      - name: Build post-service
+        working-directory: services/post-service
+        run: mvn clean package -DskipTests
+
+      - name: Build notification-service
+        working-directory: services/notification-service
+        run: mvn clean package -DskipTests
+
+      - name: Build api-gateway
+        working-directory: infrastructure/api-gateway
+        run: mvn clean package -DskipTests
+
+      - name: Build config-server
+        working-directory: infrastructure/config-server
+        run: mvn clean package -DskipTests
+
+      - name: Sauvegarder les JARs
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-jars
+          path: |
+            services/auth-service/target/*.jar
+            services/user-service/target/*.jar
+            services/startup-service/target/*.jar
+            services/post-service/target/*.jar
+            services/notification-service/target/*.jar
+            infrastructure/api-gateway/target/*.jar
+            infrastructure/config-server/target/*.jar
+
+  # ─────────────────────────────────────────
+  # JOB 2 : Build du chat-service (Node.js)
+  # ─────────────────────────────────────────
+  build-node:
+    name: Build Chat Service (Node.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Installer les dépendances chat-service
+        working-directory: services/chat-service
+        run: npm ci
+
+  # ─────────────────────────────────────────
+  # JOB 3 : Build et push des images Docker
+  # ─────────────────────────────────────────
+  build-docker:
+    name: Build & Push Images Docker
+    runs-on: ubuntu-latest
+    needs: [build-java, build-node]
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Récupérer les JARs compilés
+        uses: actions/download-artifact@v4
+        with:
+          name: java-jars
+
+      - name: Connexion à Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push auth-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/auth-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
+
+      - name: Build & Push user-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/user-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/user-service:latest
+
+      - name: Build & Push startup-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/startup-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/startup-service:latest
+
+      - name: Build & Push post-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/post-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/post-service:latest
+
+      - name: Build & Push notification-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/notification-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/notification-service:latest
+
+      - name: Build & Push chat-service
+        uses: docker/build-push-action@v5
+        with:
+          context: services/chat-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
+
+      - name: Build & Push api-gateway
+        uses: docker/build-push-action@v5
+        with:
+          context: infrastructure/api-gateway
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/api-gateway:latest
+
+      - name: Build & Push config-server
+        uses: docker/build-push-action@v5
+        with:
+          context: infrastructure/config-server
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/config-server:latest
+
+  # ─────────────────────────────────────────
+  # JOB 4 : Déploiement sur la VM
+  # ─────────────────────────────────────────
+  deploy:
+    name: Déploiement sur la VM
+    runs-on: ubuntu-latest
+    needs: build-docker
+
+    steps:
+      - name: Déployer sur la VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ec2-user
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            APP_DIR="/opt/founderssync/backend"
+
+            echo "==> Pulling latest code..."
+            git -C "$APP_DIR" pull --ff-only
+
+            echo "==> Connexion Docker Hub..."
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
+              -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            echo "==> Téléchargement des nouvelles images..."
+            cd "$APP_DIR"
+            docker compose pull 2>/dev/null || true
+
+            echo "==> Redémarrage des conteneurs..."
+            docker compose up -d --build
+
+            echo "==> Status des conteneurs :"
+            docker compose ps
+
+            echo "Déploiement terminé"
+            echo "API Gateway: http://${{ secrets.VM_HOST }}:8080"
