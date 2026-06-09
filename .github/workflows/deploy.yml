@@ -8,99 +8,15 @@ on:
 jobs:
 
   # ─────────────────────────────────────────
-  # JOB 1 : Build des services Spring Boot
-  # ─────────────────────────────────────────
-  build-java:
-    name: Build Java Services (Maven)
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-
-      - name: Installer Java 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Build auth-service
-        working-directory: services/auth-service
-        run: mvn clean package -DskipTests
-
-      - name: Build user-service
-        working-directory: services/user-service
-        run: mvn clean package -DskipTests
-
-      - name: Build startup-service
-        working-directory: services/startup-service
-        run: mvn clean package -DskipTests
-
-      - name: Build post-service
-        working-directory: services/post-service
-        run: mvn clean package -DskipTests
-
-      - name: Build notification-service
-        working-directory: services/notification-service
-        run: mvn clean package -DskipTests
-
-      - name: Build api-gateway
-        working-directory: infrastructure/api-gateway
-        run: mvn clean package -DskipTests
-
-      - name: Build config-server
-        working-directory: infrastructure/config-server
-        run: mvn clean package -DskipTests
-
-      - name: Sauvegarder les JARs
-        uses: actions/upload-artifact@v4
-        with:
-          name: java-jars
-          path: |
-            services/auth-service/target/*.jar
-            services/user-service/target/*.jar
-            services/startup-service/target/*.jar
-            services/post-service/target/*.jar
-            services/notification-service/target/*.jar
-            infrastructure/api-gateway/target/*.jar
-            infrastructure/config-server/target/*.jar
-
-  # ─────────────────────────────────────────
-  # JOB 2 : Build du chat-service (Node.js)
-  # ─────────────────────────────────────────
-  build-node:
-    name: Build Chat Service (Node.js)
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
-
-      - name: Installer Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Installer les dépendances chat-service
-        working-directory: services/chat-service
-        run: npm ci
-
-  # ─────────────────────────────────────────
-  # JOB 3 : Build et push des images Docker
+  # JOB 1 : Build et push des images Docker
   # ─────────────────────────────────────────
   build-docker:
     name: Build & Push Images Docker
     runs-on: ubuntu-latest
-    needs: [build-java, build-node]
 
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
-
-      - name: Récupérer les JARs compilés
-        uses: actions/download-artifact@v4
-        with:
-          name: java-jars
 
       - name: Connexion à Docker Hub
         uses: docker/login-action@v3
@@ -164,8 +80,19 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/config-server:latest
 
+      - name: Build & Push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+          build-args: |
+            NEXT_PUBLIC_HOST_GATEWAY_API_URL=http://${{ secrets.VM_HOST }}:8080
+            NEXT_PUBLIC_SERVER_URL=http://${{ secrets.VM_HOST }}:8080
+            NEXT_PUBLIC_ASSET_URL=http://${{ secrets.VM_HOST }}:8080
+
   # ─────────────────────────────────────────
-  # JOB 4 : Déploiement sur la VM
+  # JOB 2 : Déploiement sur la VM
   # ─────────────────────────────────────────
   deploy:
     name: Déploiement sur la VM
@@ -181,7 +108,7 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             set -euo pipefail
-            APP_DIR="/opt/founderssync/backend"
+            APP_DIR="/opt/founderssync"
 
             echo "==> Pulling latest code..."
             git -C "$APP_DIR" pull --ff-only
@@ -192,10 +119,10 @@ jobs:
 
             echo "==> Téléchargement des nouvelles images..."
             cd "$APP_DIR"
-            docker compose pull 2>/dev/null || true
+            docker compose pull
 
             echo "==> Redémarrage des conteneurs..."
-            docker compose up -d --build
+            docker compose up -d
 
             echo "==> Status des conteneurs :"
             docker compose ps
