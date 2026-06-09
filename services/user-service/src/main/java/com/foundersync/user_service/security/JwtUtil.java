@@ -25,6 +25,15 @@ public class JwtUtil {
         return UUID.fromString((String) claims.get("userId"));
     }
 
+    public String extractEmail(String authHeader) {
+        String token = authHeader.substring(7);
+        Claims claims = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return claims.getSubject();
+    }
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }

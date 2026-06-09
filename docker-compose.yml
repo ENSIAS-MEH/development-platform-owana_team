@@ -88,7 +88,7 @@ services:
       POST_SERVICE_URL: http://post-service:8084
       CHAT_SERVICE_URL: http://chat-service:8085
       NOTIFICATION_SERVICE_URL: http://notification-service:8086
-      CORS_ALLOWED_ORIGINS: http://localhost:4200,http://localhost:3000
+      CORS_ALLOWED_ORIGINS: http://13.39.180.127:3000,http://localhost:3000,http://localhost:4200
     ports:
       - "8080:8080"
     networks:
@@ -272,15 +272,15 @@ services:
   # FRONTEND
   # ──────────────────────────────────────────
   frontend:
-     build: ./frontend
+     build:
+       context: ./frontend
+       args:
+         NEXT_PUBLIC_HOST_GATEWAY_API_URL: http://13.39.180.127:8080
+         NEXT_PUBLIC_SERVER_URL: http://13.39.180.127:8080
+         NEXT_PUBLIC_ASSET_URL: http://13.39.180.127:8080
      container_name: frontend
      ports:
        - "3000:3000"
-     networks:
-       - foundersync-network
-     depends_on:
-       - api-gateway
-
 # ──────────────────────────────────────────
 # VOLUMES & NETWORKS
 # ──────────────────────────────────────────

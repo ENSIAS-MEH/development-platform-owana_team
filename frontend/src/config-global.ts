@@ -6,7 +6,7 @@ import packageJson from '../package.json';
 
 // GATEWAY API — FoundersSync API Gateway
 export const GATEWAY_API_URL =
-  process.env.NEXT_PUBLIC_HOST_GATEWAY_API_URL || 'http://localhost:8080';
+  process.env.NEXT_PUBLIC_HOST_GATEWAY_API_URL || 'http://13.39.180.127:8080';
 
 // config Value
 export type ConfigValue = {

@@ -31,7 +31,7 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 // Exponential backoff delays: 1s, 2s, 4s, 8s, 16s
 const RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 16000];
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_HOST_GATEWAY_API_URL || 'http://localhost:8080';
+const SOCKET_URL = process.env.NEXT_PUBLIC_HOST_GATEWAY_API_URL || 'http://13.39.180.127:8080';
 
 // ---------------------------------------------------------------------------
 // Socket instance (module-level so it persists across renders)

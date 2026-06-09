@@ -51,6 +51,9 @@ export const paths = {
       members: (id: string) => `${ROOTS.DASHBOARD}/startup/${id}/members`,
     },
 
+    chat: {
+      root: `${ROOTS.DASHBOARD}/chat`,
+    },
     feed: {
       root: `${ROOTS.DASHBOARD}/feed`,
       saved: `${ROOTS.DASHBOARD}/feed/saved`,

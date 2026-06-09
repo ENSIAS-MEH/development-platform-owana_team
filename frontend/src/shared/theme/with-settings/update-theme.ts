@@ -3,7 +3,6 @@ import type { SettingsState } from 'src/shared/components/settings';
 
 import COLORS from '../core/colors.json';
 import PRIMARY_COLOR from './primary-color.json';
-import { components as coreComponents } from '../core/components';
 import { hexToRgbChannel, createPaletteChannel } from '../styles';
 import { grey as coreGreyPalette, primary as corePrimaryPalette } from '../core/palette';
 import { createShadowColor, customShadows as coreCustomShadows } from '../core/custom-shadows';
@@ -68,17 +67,9 @@ export function updateComponentsWithSettings(settings: SettingsState) {
   if (settings.contrast === 'hight') {
     const MuiCard: Components<Theme>['MuiCard'] = {
       styleOverrides: {
-        root: ({ theme, ownerState }) => {
-          let rootStyles = {};
-          if (typeof coreComponents?.MuiCard?.styleOverrides?.root === 'function') {
-            rootStyles = coreComponents.MuiCard.styleOverrides.root({ ownerState, theme }) ?? {};
-          }
-
-          return {
-            ...rootStyles,
-            boxShadow: theme.customShadows.z1,
-          };
-        },
+        root: ({ theme }) => ({
+          boxShadow: theme.customShadows.z1,
+        }),
       },
     };
 

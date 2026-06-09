@@ -109,9 +109,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserProfileResponse getMyProfile(String authHeader) {
         UUID userId = jwtUtil.extractUserId(authHeader);
-        return getProfileByUserId(userId);
+        String email = jwtUtil.extractEmail(authHeader);
+        return userProfileRepository.findByUserId(userId)
+                .map(this::toResponse)
+                .orElseGet(() -> {
+                    log.warn("Profile not found for userId: {} — auto-creating", userId);
+                    UserProfile profile = UserProfile.builder()
+                            .userId(userId)
+                            .email(email)
+                            .build();
+                    userProfileRepository.save(profile);
+                    return toResponse(profile);
+                });
     }
 
     @Override
