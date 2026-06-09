@@ -91,9 +91,9 @@ jobs:
             NEXT_PUBLIC_SERVER_URL=http://${{ secrets.VM_HOST }}:8080
             NEXT_PUBLIC_ASSET_URL=http://${{ secrets.VM_HOST }}:8080
 
-  # ─────────────────────────────────────────
+  # ────────────────────────────────────────
   # JOB 2 : Déploiement sur la VM
-  # ─────────────────────────────────────────
+  # ────────────────────────────────────────
   deploy:
     name: Déploiement sur la VM
     runs-on: ubuntu-latest
