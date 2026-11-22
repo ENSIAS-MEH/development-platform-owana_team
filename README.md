@@ -4,6 +4,7 @@
 
 [![Status](https://img.shields.io/badge/Status-In%20Development-blue.svg)]()
 [![Team](https://img.shields.io/badge/Team-Owana-success.svg)]()
+![CI](https://github.com/ENSIAS-MEH/development-platform-owana_team/actions/workflows/ci.yml/badge.svg)
 
 ## À quoi consiste le projet ?
 **FoundersSync** est une plateforme interactive et collaborative conçue pour les jeunes entrepreneurs et étudiants qui souhaitent vivre l'expérience réelle de la création d'une startup, mais dans un environnement simulé et sans risque. 
