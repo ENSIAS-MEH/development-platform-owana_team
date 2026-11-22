@@ -1,0 +1,7 @@
+.env
+services/chat-service/.env
+*.class
+target/
+.idea/
+*.iml
+node_modules/

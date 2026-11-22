@@ -1,0 +1,57 @@
+# =============================================================================
+
+# ─── General ──────────────────────────────────────────────────────────────────
+aws_region   = "eu-west-3"
+environment  = "prod"
+project_name = "founderssync"
+
+# ─── EC2 ──────────────────────────────────────────────────────────────────────
+# t2.micro is AWS Free Tier eligible (750 hrs/month for 12 months).
+# Upgrade to t3.large (~$60/month) when moving to real production.
+ec2_instance_type = "t2.micro"
+
+# Name of the key pair you created in AWS Console → EC2 → Key Pairs.
+# To create one: aws ec2 create-key-pair --key-name founderssync-key --region eu-west-3 --query 'KeyMaterial' --output text > ~/.ssh/founderssync-key.pem
+ec2_key_pair_name = "founderssync-key"
+
+# Free Tier includes 30 GB of EBS — do not increase beyond 30 on Free Tier.
+ec2_root_volume_size_gb = 30
+
+# REQUIRED — restrict SSH to your own IP only.
+# Find your IP: curl https://checkip.amazonaws.com
+# Then set: allowed_ssh_cidrs = ["203.0.113.42/32"]
+allowed_ssh_cidrs = ["YOUR_IP/32"]
+
+# ─── RDS ──────────────────────────────────────────────────────────────────────
+# db.t3.micro is AWS Free Tier eligible (750 hrs/month for 12 months).
+rds_instance_class       = "db.t3.micro"
+rds_allocated_storage_gb = 20
+db_username              = "founderssync"
+db_password              = "CHANGE_ME_strong_password_123!"
+
+# ─── Application secrets ──────────────────────────────────────────────────────
+jwt_secret     = "founderssync_jwt_secret_minimum_32_characters_ok"
+mail_username  = "your-gmail@gmail.com"
+mail_password  = "your-gmail-app-password"    # Gmail App Password, not your real password
+admin_email    = "admin@founderssync.com"
+admin_password = "Admin@Secure123!"
+
+# ─── AWS S3 (optional — for profile picture and startup file uploads) ─────────
+# S3 is NOT required to run the application. Services start fine without it;
+# only the file upload endpoints (/api/users/me/picture, startup attachments)
+# will return an error if credentials are empty.
+#
+# AWS Free Tier includes 5 GB of S3 storage — sufficient for a school demo.
+#
+# Leave empty to skip S3:
+#   aws_access_key_app = ""
+#   aws_secret_key_app = ""
+aws_access_key_app = ""                       # CHANGE_ME or leave empty to skip S3
+aws_secret_key_app = ""                       # CHANGE_ME or leave empty to skip S3
+aws_s3_bucket_name = "founderssync-uploads"
+
+# ─── Frontend / CORS ──────────────────────────────────────────────────────────
+# Replace YOUR_EC2_IP with the Elastic IP shown after terraform apply.
+# You can also update this after apply: terraform apply -var='cors_allowed_origins=http://1.2.3.4:3000'
+frontend_url         = "http://YOUR_EC2_IP:3000"
+cors_allowed_origins = "http://YOUR_EC2_IP:3000"
