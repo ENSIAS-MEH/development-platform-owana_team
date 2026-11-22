@@ -1,131 +1,90 @@
-name: CI/CD Pipeline — FoundersSync
+name: CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
 
 jobs:
-
-  # ─────────────────────────────────────────
-  # JOB 1 : Build et push des images Docker
-  # ─────────────────────────────────────────
-  build-docker:
-    name: Build & Push Images Docker
+  publish-images:
+    name: Publish ${{ matrix.name }}
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: auth-service,         context: services/auth-service }
+          - { name: user-service,         context: services/user-service }
+          - { name: startup-service,      context: services/startup-service }
+          - { name: post-service,         context: services/post-service }
+          - { name: notification-service, context: services/notification-service }
+          - { name: chat-service,         context: services/chat-service }
+          - { name: api-gateway,          context: infrastructure/api-gateway }
+          - { name: config-server,        context: infrastructure/config-server }
+          - { name: frontend,             context: frontend }
     steps:
-      - name: Checkout du code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Connexion à Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Image prefix (GHCR requires lowercase)
+        run: echo "IMAGE_PREFIX=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/founderssync" >> "$GITHUB_ENV"
 
-      - name: Build & Push auth-service
-        uses: docker/build-push-action@v5
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
         with:
-          context: services/auth-service
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest
-
-      - name: Build & Push user-service
-        uses: docker/build-push-action@v5
-        with:
-          context: services/user-service
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/user-service:latest
-
-      - name: Build & Push startup-service
-        uses: docker/build-push-action@v5
-        with:
-          context: services/startup-service
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/startup-service:latest
-
-      - name: Build & Push post-service
-        uses: docker/build-push-action@v5
-        with:
-          context: services/post-service
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/post-service:latest
-
-      - name: Build & Push notification-service
-        uses: docker/build-push-action@v5
-        with:
-          context: services/notification-service
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/notification-service:latest
-
-      - name: Build & Push chat-service
-        uses: docker/build-push-action@v5
-        with:
-          context: services/chat-service
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/chat-service:latest
-
-      - name: Build & Push api-gateway
-        uses: docker/build-push-action@v5
-        with:
-          context: infrastructure/api-gateway
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/api-gateway:latest
-
-      - name: Build & Push config-server
-        uses: docker/build-push-action@v5
-        with:
-          context: infrastructure/config-server
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/config-server:latest
-
-      - name: Build & Push frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: frontend
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/${{ matrix.name }}:latest
+            ${{ env.IMAGE_PREFIX }}/${{ matrix.name }}:${{ github.sha }}
+          # Only used by the frontend Dockerfile; ignored by the others.
           build-args: |
-            NEXT_PUBLIC_HOST_GATEWAY_API_URL=http://${{ secrets.VM_HOST }}:8080
-            NEXT_PUBLIC_SERVER_URL=http://${{ secrets.VM_HOST }}:8080
-            NEXT_PUBLIC_ASSET_URL=http://${{ secrets.VM_HOST }}:8080
+            NEXT_PUBLIC_HOST_GATEWAY_API_URL=${{ vars.PUBLIC_API_URL || 'http://localhost:8080' }}
+            NEXT_PUBLIC_SERVER_URL=${{ vars.PUBLIC_API_URL || 'http://localhost:8080' }}
+            NEXT_PUBLIC_ASSET_URL=${{ vars.PUBLIC_API_URL || 'http://localhost:8080' }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
 
-  # ────────────────────────────────────────
-  # JOB 2 : Déploiement sur la VM
-  # ────────────────────────────────────────
   deploy:
-    name: Déploiement sur la VM
+    name: Deploy to VM
+    needs: publish-images
+    # Opt-in: set repository variable DEPLOY_ENABLED=true once a VM exists.
+    if: vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
-    needs: build-docker
-
     steps:
-      - name: Déployer sur la VM via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Image prefix
+        run: echo "IMAGE_PREFIX=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/founderssync" >> "$GITHUB_ENV"
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          IMAGE_PREFIX: ${{ env.IMAGE_PREFIX }}
+          IMAGE_TAG: ${{ github.sha }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: ec2-user
           key: ${{ secrets.VM_SSH_KEY }}
+          envs: IMAGE_PREFIX,IMAGE_TAG
           script: |
             set -euo pipefail
-            APP_DIR="/opt/founderssync"
-
-            echo "==> Pulling latest code..."
-            git -C "$APP_DIR" pull --ff-only
-
-            echo "==> Connexion Docker Hub..."
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login \
-              -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
-            echo "==> Téléchargement des nouvelles images..."
-            cd "$APP_DIR"
+            cd /opt/founderssync
+            git pull --ff-only
+            export IMAGE_PREFIX IMAGE_TAG
             docker compose pull
-
-            echo "==> Redémarrage des conteneurs..."
-            docker compose up -d
-
-            echo "==> Status des conteneurs :"
+            docker compose up -d --remove-orphans
+            docker image prune -f
             docker compose ps
-
-            echo "Déploiement terminé"
-            echo "API Gateway: http://${{ secrets.VM_HOST }}:8080"

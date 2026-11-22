@@ -41,6 +41,17 @@ Pour assurer une architecture robuste, évolutive et moderne, nous avons opté p
 
 ### Base de Données
 * **PostgreSQL :** Base de données relationnelle pour le stockage des profils, projets et équipes.
+
+
+## Lancer en local
+
+```bash
+git clone <URL-du-repo>
+cd <nom-du-repo>
+docker compose up --build
+```
+
+Frontend : http://localhost:3000 — API Gateway : http://localhost:8080
   
 ## L'Équipe Owana
 Ce projet est développé dans le cadre de la filière GL par :

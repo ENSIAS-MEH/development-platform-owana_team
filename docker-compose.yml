@@ -57,6 +57,7 @@ services:
   config-server:
     build: ./infrastructure/config-server
     container_name: config-server
+    image: ${IMAGE_PREFIX:-founderssync}/config-server:${IMAGE_TAG:-latest}
     environment:
       SPRING_PROFILES_ACTIVE: native
       SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS: file:/config-repo
@@ -80,6 +81,7 @@ services:
   api-gateway:
     build: ./infrastructure/api-gateway
     container_name: api-gateway
+    image: ${IMAGE_PREFIX:-founderssync}/api-gateway:${IMAGE_TAG:-latest}
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
       AUTH_SERVICE_URL: http://auth-service:8081
@@ -88,7 +90,7 @@ services:
       POST_SERVICE_URL: http://post-service:8084
       CHAT_SERVICE_URL: http://chat-service:8085
       NOTIFICATION_SERVICE_URL: http://notification-service:8086
-      CORS_ALLOWED_ORIGINS: http://13.39.180.127:3000,http://localhost:3000,http://localhost:4200
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
     ports:
       - "8080:8080"
     networks:
@@ -108,6 +110,7 @@ services:
   auth-service:
     build: ./services/auth-service
     container_name: auth-service
+    image: ${IMAGE_PREFIX:-founderssync}/auth-service:${IMAGE_TAG:-latest}
     restart: on-failure
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
@@ -140,6 +143,7 @@ services:
   user-service:
     build: ./services/user-service
     container_name: user-service
+    image: ${IMAGE_PREFIX:-founderssync}/user-service:${IMAGE_TAG:-latest}
     restart: on-failure
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
@@ -168,6 +172,7 @@ services:
   startup-service:
     build: ./services/startup-service
     container_name: startup-service
+    image: ${IMAGE_PREFIX:-founderssync}/startup-service:${IMAGE_TAG:-latest}
     restart: on-failure
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
@@ -180,6 +185,7 @@ services:
       AWS_ACCESS_KEY: ${STARTUP_AWS_ACCESS_KEY:-}
       AWS_SECRET_KEY: ${STARTUP_AWS_SECRET_KEY:-}
       AWS_BUCKET_NAME: ${STARTUP_AWS_BUCKET_NAME:-}
+      JWT_SECRET: ${JWT_SECRET:-founderssync_jwt_secret_minimum_32_characters_ok}
     ports:
       - "8083:8083"
     networks:
@@ -195,6 +201,7 @@ services:
   post-service:
     build: ./services/post-service
     container_name: post-service
+    image: ${IMAGE_PREFIX:-founderssync}/post-service:${IMAGE_TAG:-latest}
     restart: on-failure
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
@@ -223,6 +230,7 @@ services:
   chat-service:
     build: ./services/chat-service
     container_name: chat-service
+    image: ${IMAGE_PREFIX:-founderssync}/chat-service:${IMAGE_TAG:-latest}
     restart: on-failure
     environment:
       PORT: 8085
@@ -247,6 +255,7 @@ services:
   notification-service:
     build: ./services/notification-service
     container_name: notification-service
+    image: ${IMAGE_PREFIX:-founderssync}/notification-service:${IMAGE_TAG:-latest}
     restart: on-failure
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://config-server:8888
@@ -275,10 +284,11 @@ services:
      build:
        context: ./frontend
        args:
-         NEXT_PUBLIC_HOST_GATEWAY_API_URL: http://13.39.180.127:8080
-         NEXT_PUBLIC_SERVER_URL: http://13.39.180.127:8080
-         NEXT_PUBLIC_ASSET_URL: http://13.39.180.127:8080
+         NEXT_PUBLIC_HOST_GATEWAY_API_URL: ${PUBLIC_API_URL:-http://localhost:8080}
+         NEXT_PUBLIC_SERVER_URL: ${PUBLIC_API_URL:-http://localhost:8080}
+         NEXT_PUBLIC_ASSET_URL: ${PUBLIC_API_URL:-http://localhost:8080}
      container_name: frontend
+     image: ${IMAGE_PREFIX:-founderssync}/frontend:${IMAGE_TAG:-latest}
      ports:
        - "3000:3000"
 # ──────────────────────────────────────────
