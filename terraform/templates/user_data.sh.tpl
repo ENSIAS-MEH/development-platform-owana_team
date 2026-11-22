@@ -123,7 +123,7 @@ echo "  .env written to $APP_DIR/.env"
 # ─── 6. Clone backend repository ─────────────────────────────────────────────
 echo "[7/8] Cloning FoundersSync backend..."
 if [ ! -d "$APP_DIR/.git" ]; then
-  sudo -u ec2-user git clone https://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@github.com/ENSIAS-MEH/development-platform-owana_team.git "$APP_DIR/repo"
+  sudo -u ec2-user git clone https://github.com/ENSIAS-MEH/development-platform-owana_team.git "$APP_DIR/repo"
   cp -r "$APP_DIR/repo/." "$APP_DIR/"
   rm -rf "$APP_DIR/repo"
 else
